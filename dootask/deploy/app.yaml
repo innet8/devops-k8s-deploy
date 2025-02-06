@@ -1,0 +1,150 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-php
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-php
+  template:
+    metadata:
+      labels:
+        app: dootask-php
+    spec:
+      initContainers:
+      - name: wait-for-job
+        image: busybox
+        command: ['sh', '-c', 'until [ -f "/app/success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
+        volumeMounts:
+        - name: app-data
+          mountPath: /app
+      containers:
+      - name: php
+        image: kuaifan/php:swoole-8.0.rc18
+        env:
+        - name: LANG
+          value: "C.UTF-8"
+        - name: MODE
+          value: "production"
+        - name: MYSQL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_HOST
+        - name: MYSQL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PORT
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_DATABASE
+        - name: MYSQL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_USERNAME
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PASSWORD
+        - name: DB_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PREFIX
+        volumeMounts:
+        - name: app-data
+          mountPath: /var/www
+          subPath: www
+        - name: app-data
+          mountPath: /etc/supervisor/conf.d/
+          subPath: supervisor/conf.d/
+        - name: app-data
+          mountPath: /var/log/supervisor
+          subPath: supervisor/log
+        - name: app-data
+          mountPath: /usr/local/etc/php/php.ini
+          subPath: php/php.ini
+        - name: env-config
+          mountPath: /var/www/.env
+          subPath: .env
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: dootask-app-pvc
+      - name: env-config
+        configMap:
+          name: dootask-env-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-nginx
+  template:
+    metadata:
+      labels:
+        app: dootask-nginx
+    spec:
+      initContainers:
+      - name: wait-for-job
+        image: busybox
+        command: ['sh', '-c', 'until [ -f "/app/success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
+        volumeMounts:
+        - name: app-data
+          mountPath: /app
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        volumeMounts:
+        - name: app-data
+          mountPath: /etc/nginx/conf.d
+          subPath: nginx/conf.d
+        - name: app-data
+          mountPath: /var/www/public
+          subPath: www/public
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: dootask-app-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-nginx
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+  - port: 443
+    targetPort: 443
+    name: https
+  selector:
+    app: dootask-nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: dootask-nginx

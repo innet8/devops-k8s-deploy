@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dootask-mysql-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: hitosea-rbd-sc
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dootask-mariadb
+spec:
+  serviceName: dootask-mariadb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-mariadb
+  template:
+    metadata:
+      labels:
+        app: dootask-mariadb
+    spec:
+      initContainers:
+      - name: init-mysql
+        image: alpine/git
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            # 创建必要的目录
+            mkdir -p /workspace/dootask
+            cd /workspace/dootask
+            
+            if [ ! -d ".git" ]; then
+                git clone -b pro https://github.com/kuaifan/dootask.git .
+            else
+                git pull
+            fi
+            
+            # 创建MySQL目录
+            mkdir -p /mysql/conf.d
+            mkdir -p /mysql/scripts
+            
+            # 复制MySQL配置文件
+            cp -r docker/mysql/conf.d/* /mysql/conf.d/
+            cp docker/mysql/repassword.sh /mysql/scripts/
+            
+            # 设置权限
+            chown -R 999:999 /mysql
+            chmod -R 755 /mysql/conf.d
+            chmod 755 /mysql/scripts/repassword.sh
+            
+            echo "MySQL initialization completed successfully"
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /mysql
+      containers:
+      - name: mariadb
+        image: mariadb:10.7.3
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_ROOT_PASSWORD
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_DATABASE
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_USERNAME
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PASSWORD
+        - name: MYSQL_PREFIX
+          value: pre_
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+        - name: mysql-data
+          mountPath: /etc/mysql/conf.d
+          subPath: conf.d
+        - name: mysql-data
+          mountPath: /etc/mysql/repassword.sh
+          subPath: scripts/repassword.sh
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: dootask-mysql-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-mariadb
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: dootask-mariadb

@@ -15,6 +15,10 @@ spec:
       containers:
       - name: hitosea
         image: hub.hitosea.com/official-website/hitosea-web:hicms-5df0c44
+        command:
+          - node
+        args:
+          - .output/server/index.mjs
         ports:
         - containerPort: 3000
           name: http

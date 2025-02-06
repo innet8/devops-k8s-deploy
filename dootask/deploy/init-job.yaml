@@ -1,0 +1,179 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dootask-init-job
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      initContainers:
+      - name: wait-for-mysql
+        image: mysql:8.0
+        command: ['sh', '-c']
+        args:
+          - |
+            echo "Waiting for MySQL to be ready..."
+            until mysql -h dootask-mariadb -u$DB_USERNAME -p$DB_PASSWORD -e "SELECT 1" >/dev/null 2>&1; do
+              echo "MySQL is unavailable - sleeping"
+              sleep 2
+            done
+            
+            # 尝试创建数据库
+            mysql -h dootask-mariadb -u$DB_USERNAME -p$DB_PASSWORD -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+            
+            echo "MySQL is up and ready!"
+        env:
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PASSWORD
+        - name: DB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_DATABASE
+      containers:
+      - name: init
+        image: kuaifan/php:swoole-8.0.rc18
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            #[ -f "/app/success" ] && exit 0
+            mkdir -p /app/www
+            cd /app/www
+            
+            if [ ! -d ".git" ]; then
+                git clone -b pro https://github.com/kuaifan/dootask.git .
+                git submodule update --init --recursive
+                cp .env.docker .env
+                if [ ! -f "vendor/autoload.php" ]; then
+                    composer config repo.packagist composer https://packagist.phpcomposer.com
+                    composer install
+                    composer config --unset repos.packagist
+                fi
+                [ -z "$(cat .env | grep "APP_KEY=" | awk -F '=' '{print $2}' | tr -d '\r\n' )" ] && php artisan key:generate
+                php artisan migrate --seed
+            else
+                LOCAL_COMMIT=$(git rev-parse HEAD)
+                git pull
+                REMOTE_COMMIT=$(git rev-parse HEAD)
+                if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
+                    echo "Git commit changed, updating submodules..."
+                    git submodule update --init --recursive
+                fi
+                composer update
+                php artisan migrate
+            fi
+            
+
+            mkdir -p /app/supervisor/conf.d
+            mkdir -p /app/php
+            mkdir -p /app/nginx/conf.d
+            mkdir -p /app/office/logs
+            mkdir -p /app/office/data
+            mkdir -p /app/office/resources
+            mkdir -p /app/drawio/webapp/js/diagramly
+            mkdir -p /app/drawio/webapp/js/croppie
+            mkdir -p /app/drawio/webapp/stencils
+            mkdir -p /app/drawio/export/fonts
+            
+            # 复制PHP相关文件
+            cp docker/crontab/crontab.conf /app/supervisor/conf.d/
+            cp docker/php/php.conf /app/supervisor/conf.d/
+            cp docker/php/php.ini /app/php/
+            
+            # 复制Nginx配置
+            cp -r docker/nginx/* /app/nginx/conf.d/
+            sed -i "s/php:20000/dootask-php:20000/g" /app/nginx/conf.d/default.conf
+            sed -i "s/fileview:8012/dootask-fileview:8012/g" /app/nginx/conf.d/default.conf
+            sed -i "s/http:\/\/office\//http:\/\/dootask-office\//g" /app/nginx/conf.d/default.conf
+            sed -i "s/drawio-webapp:8080/dootask-drawio:8080/g" /app/nginx/conf.d/default.conf
+            sed -i "s/drawio-export:8000/dootask-drawio:8000/g" /app/nginx/conf.d/default.conf
+            sed -i "s/http:\/\/minder\//http:\/\/dootask-minder\//g" /app/nginx/conf.d/default.conf
+            sed -i "s/http:\/\/approve\//http:\/\/dootask-approve\//g" /app/nginx/conf.d/default.conf
+            sed -i "s/okr:5566/dootask-okr:5566/g" /app/nginx/conf.d/default.conf
+            sed -i "s/ai:5001/dootask-ai:5001/g" /app/nginx/conf.d/default.conf
+            
+            
+            # 复制Office相关文件
+            cp -r docker/office/resources/ /app/office/
+            
+            # 复制Drawio相关文件
+            cp docker/drawio/webapp/index.html /app/drawio/webapp/
+            cp -r docker/drawio/webapp/stencils /app/drawio/webapp/
+            cp docker/drawio/webapp/js/app.min.js /app/drawio/webapp/js/
+            cp -r docker/drawio/webapp/js/croppie /app/drawio/webapp/js/
+            cp docker/drawio/webapp/js/diagramly/ElectronApp.js /app/drawio/webapp/js/diagramly/
+            cp -r docker/drawio/export/fonts/ /app/drawio/export/
+            
+            # 创建存储目录
+            mkdir -p /app/www/storage/app/public
+            mkdir -p /app/www/storage/framework/caches
+            mkdir -p /app/www/storage/framework/sessions
+            mkdir -p /app/www/storage/framework/views
+
+            
+            # 设置权限
+            chown -R 1000:1000 /app
+            chmod -R 775 /app/www/storage
+            
+            echo "Preparation completed successfully" >/app/success
+        env:
+        - name: COMPOSER_ALLOW_SUPERUSER
+          value: "1"
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PORT
+        - name: DB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_DATABASE
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PASSWORD
+        - name: DB_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PREFIX
+        volumeMounts:
+        - name: app-data
+          mountPath: /app
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: dootask-app-pvc
+      restartPolicy: OnFailure
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dootask-app-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: csi-cephfs-sc
+  resources:
+    requests:
+      storage: 20Gi
