@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hitosea-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hitosea-web
+  template:
+    metadata:
+      labels:
+        app: hitosea-web
+    spec:
+      containers:
+      - name: hitosea
+        image: hub.hitosea.com/official-website/hitosea-web:latest
+        ports:
+        - containerPort: 3000
+          name: http
+        imagePullPolicy: IfNotPresent
+      imagePullSecrets:
+      - name: regcred
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hitosea-web
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 3000
+    name: http
+  selector:
+    app: hitosea-web

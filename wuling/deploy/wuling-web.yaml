@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wuling-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wuling-web
+  template:
+    metadata:
+      labels:
+        app: wuling-web
+    spec:
+      containers:
+      - name: wuling
+        image: docker.io/hitoseadevops/wuling:master-2b9d361
+        ports:
+        - containerPort: 4000
+          name: http
+        imagePullPolicy: IfNotPresent
+      imagePullSecrets:
+      - name: regcred
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wuling-web
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 4000
+    name: http
+  selector:
+    app: wuling-web
+
