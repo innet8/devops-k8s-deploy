@@ -48,6 +48,8 @@ jobs:
       - name: Copy Dockerfile to B repository
         run: |
           cp ${{ env.PROJECT }}/Dockerfile ${{ env.SRC_PATH }}/Dockerfile
+          cd ${{ env.SRC_PATH }}
+          echo "COMMIT_ID=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -81,15 +83,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,prefix=${{ github.event.inputs.branch }}-,suffix=,format=short  
+            type=sha,value=${{ steps.config.outputs.COMMIT_ID }},prefix=${{ github.event.inputs.branch }}-,suffix=,format=short  
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
-        working-directory: ${{ env.SRC_PATH }}
         id: build-and-push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: .
+          context: ${{ env.SRC_PATH }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
