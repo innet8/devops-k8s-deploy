@@ -19,7 +19,7 @@ env:
   # github.repository as <account>/<repo>
   IMAGE_NAME: official-website/hitosea-web
   PROJECT: hitosea-web
-  URL: https://github.com/innet8/hitosea-nuxt3.git
+  URL: innet8/hitosea-nuxt3
   SRC_PATH: hitosea-git
 
 jobs:

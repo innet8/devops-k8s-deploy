@@ -20,7 +20,7 @@ env:
   # github.repository as <account>/<repo>
   IMAGE_NAME: official-website/wuling
   PROJECT: wuling
-  URL: https://github.com/innet8/wuling.git
+  URL: innet8/wuling
   SRC_PATH: wuling-git
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
           cp ${{ env.PROJECT }}/Dockerfile ${{ env.SRC_PATH }}/Dockerfile
           cd ${{ env.SRC_PATH }}
           echo "COMMIT_ID=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          
+
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
