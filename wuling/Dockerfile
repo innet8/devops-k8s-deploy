@@ -2,7 +2,7 @@ FROM node:20-slim
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN npm i -g corepack@latest && corepack enable
 
 COPY pnpm-lock.yaml /app/
 WORKDIR /app
