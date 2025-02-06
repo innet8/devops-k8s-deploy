@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: hitosea
-        image: hub.hitosea.com/official-website/hitosea-web:latest
+        image: hub.hitosea.com/official-website/hitosea-web:hicms-5df0c44
         ports:
         - containerPort: 3000
           name: http
