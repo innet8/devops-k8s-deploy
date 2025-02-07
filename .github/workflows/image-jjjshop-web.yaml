@@ -127,7 +127,7 @@ jobs:
         run: |
           cp ${{ env.PROJECT }}/Dockerfile.web ${{ env.jjjshop_path }}/Dockerfile
           cd ${{ env.jjjshop_path }}
-          echo "COMMIT_ID=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "COMMIT_ID=$(git log -1 --pretty=format:%h -- .)" >> $GITHUB_OUTPUT
 
       # - name: Start web build
       #   run: |
@@ -230,7 +230,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ steps.meta.outputs.tags }}
-            ${{ steps.meta.outputs.tags }},latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
