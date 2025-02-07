@@ -21,7 +21,7 @@ env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: hub.hitosea.com
   # github.repository as <account>/<repo>
-  IMAGE_NAME: official-website/jjjshop-web
+  IMAGE_NAME: ttpos-web/jjjshop-web
   PROJECT: jjjshop-saas
   jjjshop_url: innet8/jjjshop
   jjjshop_path: jjjshop-git
