@@ -13,13 +13,13 @@ spec:
         args:
           - |
             echo "Waiting for MySQL to be ready..."
-            until mysql -h dootask-mariadb -u$DB_USERNAME -p$DB_PASSWORD -e "SELECT 1" >/dev/null 2>&1; do
+            until mysql -h jjjshop-mariadb -u$DB_USERNAME -p$DB_PASSWORD -e "SELECT 1" >/dev/null 2>&1; do
               echo "MySQL is unavailable - sleeping"
               sleep 2
             done
             
             # 尝试创建数据库
-            mysql -h dootask-mariadb -u$DB_USERNAME -p$DB_PASSWORD -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+            mysql -h jjjshop-mariadb -u$DB_USERNAME -p$DB_PASSWORD -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
             
             echo "MySQL is up and ready!"
         env:
