@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jjjshop-mariadb
+spec:
+  serviceName: jjjshop-mariadb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jjjshop-mariadb
+  template:
+    metadata:
+      labels:
+        app: jjjshop-mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.11.6
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_ROOT_PASSWORD
+        - name: MARIADB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_DATABASE
+        - name: MARIADB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_USERNAME
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_PASSWORD
+        - name: MARIADB_PREFIX
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_PREFIX
+        - name: MARIADB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_HOST
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+        - name: db-config
+          mountPath: /etc/mysql/conf.d/
+          subPath: my.conf
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql-data-pvc
+        - name: db-config
+          configMap:
+            name: config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jjjshop-mariadb
+spec:
+  selector:
+    app: jjjshop-mariadb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306

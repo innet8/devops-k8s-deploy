@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jjjshop-php
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jjjshop-php
+  template:
+    metadata:
+      labels:
+        app: jjjshop-php
+    spec:
+      initContainers:
+      - name: wait-for-job
+        image: busybox
+        command: ['sh', '-c', 'until [ -f "/var/www/.success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
+        volumeMounts:
+        - name: jjjshop-php-data
+          mountPath: /var/www
+      containers:
+      - name: php
+        image: hitosea2020/php-fpm:1.0.6
+        volumeMounts:
+          - name: jjjshop-php-data
+            mountPath: /var/www
+          - name: php-config
+            mountPath: /usr/local/etc/php/php.ini
+            subPath: php.ini
+          - name: env
+            mountPath: /var/www/.env
+            subPath: .env
+          - name: php-config
+            mountPath: /usr/local/etc/php-fpm.d/www.conf
+            subPath: www.conf
+          - name: jjjshop-php-data
+            mountPath: /usr/local/etc/php/conf.d/docker-vars.ini
+            subPath: docker/php/conf.d/docker-vars.ini
+          - name: jjjshop-php-data
+            mountPath: /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+            subPath: docker/php/conf.d/opcache.ini
+          - name: jjjshop-php-data
+            mountPath: /etc/supervisor/conf.d/php.conf
+            subPath: docker/php/supervisor/supervisor.conf
+          - name: jjjshop-php-data
+            mountPath: /etc/supervisor/conf.d/supervisor_queue.conf
+            subPath: docker/php/supervisor/supervisor_queue.conf
+          - name: jjjshop-php-data
+            mountPath: /etc/supervisor/conf.d/php_inotify.conf
+            subPath: docker/php/supervisor/supervisor_inotify.conf
+      volumes:
+      - name: jjjshop-php-data
+        persistentVolumeClaim:
+          claimName: jjjshop-php-pvc
+      - name: php-config
+        configMap:
+          name: config
+      - name: env
+        configMap:
+          name: env-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jjjshop-php
+spec:
+  selector:
+    app: jjjshop-php
+  ports:
+    - protocol: TCP
+      port: 9000

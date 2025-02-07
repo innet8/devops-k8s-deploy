@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jjjshop-web
+spec:
+  selector:
+    matchLabels:
+      app: jjjshop-web
+  template:
+    metadata:
+      labels:
+        app: jjjshop-web
+    spec:
+      containers:
+      - name: nginx
+        image: hub.hitosea.com/official-website/jjjshop-web:lastest
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+          - name: nginx-config
+            mountPath: /etc/nginx/conf.d/default.conf
+            subPath: default.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jjjshop-web
+spec:
+  type: LoadBalancer
+  selector:
+    app: jjjshop-web
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443

@@ -1,26 +1,160 @@
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: dootask-config
+  name: db-config
 data:
-  DB_HOST: "dootask-mariadb"
+  DB_HOST: "jjjshop-mariadb"
   DB_PORT: "3306"
-  DB_DATABASE: "dootask"
-  DB_PREFIX: "pre_"
-  REDIS_HOST: "dootask-redis"
+  DB_DATABASE: "saas"
+  DB_USERNAME: jjj
+  DB_PREFIX: "jjjfood_"
+  REDIS_HOST: "jjjshop-redis"
   REDIS_PORT: "6379"
   TIMEZONE: "PRC"
 ---
 apiVersion: v1
-kind: Secret
+kind: ConfigMap
 metadata:
-  name: dootask-secret
-type: Opaque
-stringData:
-  DB_USERNAME: "dootask"
-  DB_PASSWORD: "4E27BA0F4D3DBDB39"
-  DB_ROOT_PASSWORD: "7112d618a755dc5df42058226f1670e9db90"
-  APP_KEY: "base64:8jegjH+F2Q1eBuvruKLaIs95L/DbqhlUDo62ckj/+s8="
+  name: nginx-config
+data:
+  default.conf: |
+    include /etc/nginx/conf.d/conf.d/*.http;
+
+    #这里的IP是代理服务器的IP，也可以是IP段。意思是把该IP请求过来的x_forwarded_for设为remote_addr
+    set_real_ip_from 10.0.0.0/24;
+    set_real_ip_from 192.168.0.0/16;
+    set_real_ip_from 172.16.0.0/12;
+    real_ip_header X-Forwarded-For;
+
+    # 上传限制
+    client_max_body_size 120m;
+    client_header_buffer_size 100k;
+
+    # websock
+    upstream ws_services {
+        server php:2345 weight=5 max_fails=3 fail_timeout=30s;
+        keepalive 16;
+    }
+
+    # 设置图片缓存目录
+    proxy_cache_path /var/cache/imgs levels=1:2 keys_zone=my_cache_c:2m;  
+
+    # 
+    server {
+        listen 80;
+        server_name localhost;
+        include /etc/nginx/conf.d/conf.d/*.conf;
+        root /var/www/public;
+        index index.html index.htm;
+
+        location ~ ^/(admin|cashier|apidoc|shop|kitchen|tablet|scan|assistant|menu)$ {
+            return 301 $scheme://$http_host$request_uri/;
+        }
+
+        location ~ ^/(admin|cashier/|apidoc/|shop/|kitchen/|tablet/|scan/|assistant/|menu/) {
+            index index.html;
+            if ($uri ~* \.html) {
+                add_header Content-Type "text/html; charset=utf-8";
+            }
+        }
+        
+        location /index.php {
+            rewrite ^/index.php/(.*)$ /index.php?s=/$1 last;
+        }
+
+        location /api {
+            rewrite ^/api/(.*)$ /index.php?s=/$1 last;
+        }
+
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_pass php:9000;
+            fastcgi_index index.php/admin;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+
+        location /ws {
+            proxy_http_version 1.1;
+        proxy_connect_timeout 180s;
+            proxy_send_timeout 1600s;
+            proxy_read_timeout 1600s;
+            proxy_set_header X-Real-IP $http_x_forwarded_for;
+            proxy_set_header X-Real-PORT $remote_port;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $http_host;
+            proxy_set_header Scheme $scheme;
+            proxy_set_header Server-Protocol $server_protocol;
+            proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_404;
+            proxy_max_temp_file_size 128m;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";	
+            proxy_pass http://ws_services;
+      }
+
+        location ~ ^/api/product/thumb.*\.(gif|jpg|jpeg|png)$ {
+            proxy_cache my_cache_c;
+            proxy_cache_key "$scheme$request_method$host$request_uri";
+            add_header Nginx-Cache-Status "$upstream_cache_status";
+            proxy_cache_valid 200 301 302 7d;
+            # 
+            proxy_http_version 1.1;
+            proxy_set_header Connection "Upgrade";  
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Real-PORT $remote_port;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $http_host;
+            proxy_set_header Scheme $scheme;
+            proxy_set_header Server-Protocol $server_protocol;
+            proxy_set_header Server-Name $server_name;
+            proxy_set_header Server-Addr $server_addr;
+            proxy_set_header Server-Port $server_port;
+            proxy_pass http://nginx:30000;
+        }
+        
+        # 代理谷歌云存储
+        location /storage_googleapis/ { 
+            proxy_pass https://storage.googleapis.com/;  
+            proxy_set_header Host storage.googleapis.com;  # 设置 Host 头
+            proxy_set_header X-Real-IP $remote_addr;  # 将真实 IP 传递给后端
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  # 传递代理链中的 IP 地址
+            # 告诉浏览器要缓存图片
+            expires 365d;
+            add_header Cache-Control "public, max-age=31536000"; 
+        }
+
+        # 导出模版
+        location /imports {
+            root /var/www/public/;
+        }
+
+        gzip on;
+        gzip_proxied expired no-cache no-store private auth;
+        gzip_types text/plain text/css application/x-javascript application/json application/javascript image/x-icon image/png image/gif image/jpeg image/svg+xml;
+        charset utf-8;
+        access_log off;
+    }
+
+    # 缓存图片用
+    server {
+        listen 30000;
+        server_name localhost;
+
+        root /var/www/public;
+        index index.html index.htm;
+
+        location /api {
+            rewrite ^/api/(.*)$ /index.php?s=/$1 last;
+        }
+
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_pass php:9000;
+            fastcgi_index index.php/admin;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+    }
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -351,3 +485,84 @@ data:
     request_terminate_timeout = 60s
     catch_workers_output = yes
     clear_env = no
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-config
+data:
+  .env: |
+    APP_ID=k8stest
+    APP_IPPR=127.0.0.1
+    APP_DEBUG=false
+    APP_PORT=80
+    APP_SSL_PORT=
+    DEFAULT_TIMEZONE=Asia/Shanghai
+    CACHE_DRIVER=redis
+    TOKEN_SALT="@#$%*&fasw-dkjhs.fd"
+
+    # 数据库
+    DB_TYPE=mysql
+    DB_HOST=jjjshop-mariadb
+    DB_PREFIX=jjjfood_
+    DB_DATABASE=saas
+    DB_USERNAME=root
+    DB_PORT=3306
+    DB_PASSWORD=bf883b664e38721b
+    DB_ROOT_PASSWORD=bf883b664e38721b
+
+    # REDIS
+    REDIS_HOST=redis
+    REDIS_PORT=6379
+    REDIS_PASSWORD=
+
+    # RABBITMQ
+    RABBITMQ_HOST=rabbitmq
+    RABBITMQ_PORT=5672
+    RABBITMQ_USER=${APP_ID}
+    RABBITMQ_PASSWORD=${DB_ROOT_PASSWORD}
+
+    # 有道翻译
+    YOUDAO_APP_KEY=
+    YOUDAO_SEC_KEY=
+
+    # 是否是云上部署
+    IS_CLOUD_DEPLOY=true
+    # 打印机数量
+    CLOUD_PRINTER_NUM=1
+    # 桌台数量
+    CLOUD_TABLE_NUM=5
+
+    # 云平台的地址
+    CLOUD_PLATFORM_HOST=http://nginx
+
+    # 支付服务
+    PAY_SERVICE_AUTH_URI=/api/platform/add
+    PAY_SERVICE_URL=http://103.63.139.152:4477
+    PAY_SERVICE_IP=103.63.139.152
+    PAY_SERVICE_RSA_PUBLIC_KEY=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDAw6W//ZNMzCrX96v+eTIbuU3UsjmVLTf45Waj5rb3MALGOWLeQzeTciy0mIMnKWcN70Yl4ofU+884U8ihTqlTYlosBcschKAfFkLJXeQWmFL3GlNy/IzMgGtxlmn03H7IGphCKvsUBFYlXjdAB5znm3WcvGL/+/hPt+83IT9E6wIDAQAB
+    PAY_SERVICE_LIANLIAN_CALLBACK_URL=https://jjjshop.keli.vip/index.php/cashier/payment.callback/lianlianCallback
+    PAY_SERVICE_LIANLIAN_REFUND_CALLBACK_URL=https://jjjshop.keli.vip/index.php/cashier/payment.callback/lianlianRefundCallback
+    #模拟lianlianpay 支付退款失败
+    #PAY_SERVICE_URL=http://baidu.com 
+
+    DB_PORT_OPEN=33070
+
+
+    # 谷歌云证书文件名
+    GOOGLE_APPLICATION_CREDENTIALS_FILE_NAME=diyl-407103-c906df6d2baa.json
+    # 谷歌云bucket
+    GOOGLE_APPLICATION_BUCKET_NAME=dc_apk
+    # 谷歌云bucket - 安装包 - 环境
+    GOOGLE_APPLICATION_BUCKET_ENV=Test
+    # 谷歌云- 上传图片的bucket目录名称 （diacan-test）
+    GOOGLE_APPLICATION_UPLOADS_BUCKET_NAME=diacan-test
+    # 谷歌云 - 上传图片的目录名称 （TTPOS-Test）
+    GOOGLE_APPLICATION_UPLOADS_CATALOGUE_NAME=TTPOS-Test
+  GOOGLE_APPLICATION_CREDENTIALS_FILE: |
+    {
+      "type": "service_account",
+      "project_id": "diyl-407103",
+      "private_key_id": "c906df6d2baa",
+      "private_key": "-----
+    }
