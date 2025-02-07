@@ -2,8 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jjjshop-php
+  namespace: jjjshop-test
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: jjjshop-php
@@ -15,7 +16,7 @@ spec:
       initContainers:
       - name: wait-for-job
         image: busybox
-        command: ['sh', '-c', 'until [ -f "/var/www/.success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
+        command: ['sh', '-c', 'until [ -f "/var/www/jjjshop/jjj_food_chain/.success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
         volumeMounts:
         - name: jjjshop-php-data
           mountPath: /var/www
@@ -25,6 +26,7 @@ spec:
         volumeMounts:
           - name: jjjshop-php-data
             mountPath: /var/www
+            subPath: jjjshop/jjj_food_chain/
           - name: php-config
             mountPath: /usr/local/etc/php/php.ini
             subPath: php.ini
@@ -36,19 +38,19 @@ spec:
             subPath: www.conf
           - name: jjjshop-php-data
             mountPath: /usr/local/etc/php/conf.d/docker-vars.ini
-            subPath: docker/php/conf.d/docker-vars.ini
+            subPath: jjjshop/jjj_food_chain/docker/php/conf.d/docker-vars.ini
           - name: jjjshop-php-data
             mountPath: /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
-            subPath: docker/php/conf.d/opcache.ini
+            subPath: jjjshop/jjj_food_chain/docker/php/conf.d/opcache.ini
           - name: jjjshop-php-data
             mountPath: /etc/supervisor/conf.d/php.conf
-            subPath: docker/php/supervisor/supervisor.conf
+            subPath: jjjshop/jjj_food_chain/docker/php/supervisor/supervisor.conf
           - name: jjjshop-php-data
             mountPath: /etc/supervisor/conf.d/supervisor_queue.conf
-            subPath: docker/php/supervisor/supervisor_queue.conf
+            subPath: jjjshop/jjj_food_chain/docker/php/supervisor/supervisor_queue.conf
           - name: jjjshop-php-data
             mountPath: /etc/supervisor/conf.d/php_inotify.conf
-            subPath: docker/php/supervisor/supervisor_inotify.conf
+            subPath: jjjshop/jjj_food_chain/docker/php/supervisor/supervisor_inotify.conf
       volumes:
       - name: jjjshop-php-data
         persistentVolumeClaim:
@@ -59,14 +61,3 @@ spec:
       - name: env
         configMap:
           name: env-config
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: jjjshop-php
-spec:
-  selector:
-    app: jjjshop-php
-  ports:
-    - protocol: TCP
-      port: 9000

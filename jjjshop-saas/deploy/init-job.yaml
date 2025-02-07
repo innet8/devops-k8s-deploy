@@ -49,10 +49,12 @@ spec:
             rm -f .success
 
             if [ ! -d ".git" ]; then
-                git clone -b $BRANCH https://$GIT_TOKEN@github.com/innet8/jjjshop.git .
+                git clone -b $BRANCH https://$GIT_TOKEN@github.com/innet8/jjjshop.git 
+                cd jjjshop/jjj_food_chain/
                 composer install --ignore-platform-reqs
 
             else
+                cd jjjshop/jjj_food_chain/
                 git pull
                 composer update --ignore-platform-reqs
             fi
