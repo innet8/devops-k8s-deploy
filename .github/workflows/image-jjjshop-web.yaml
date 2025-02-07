@@ -125,7 +125,7 @@ jobs:
 
       - name: Copy dockerfile
         run: |
-          cp ${{ env.PROJECT }}/Dockerfile ${{ env.jjjshop_path }}/Dockerfile
+          cp ${{ env.PROJECT }}/Dockerfile.web ${{ env.jjjshop_path }}/Dockerfile
           cd ${{ env.jjjshop_path }}
           echo "COMMIT_ID=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
