@@ -8,11 +8,14 @@ name: Build jjjshop-web image
 on:
   workflow_dispatch:
     inputs:
-      branch: 
-        description: 'branch (e.g., release)'
+      bgbranch: 
+        description: '后端分支'
         required: true
         default: 'master'
-
+      branch: 
+        description: '前端分支'
+        required: true
+        default: '1.1.1'
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -60,7 +63,7 @@ jobs:
           path: ${{ env.jjjshop_path }}
           repository: ${{ env.jjjshop_url }} # 目标仓库的 owner 和名称
           token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
-          ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
+          ref: ${{ github.event.inputs.bgbranch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
       - name: Checkout the cashier code
         uses: actions/checkout@v4
