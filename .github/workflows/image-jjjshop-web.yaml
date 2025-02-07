@@ -239,20 +239,20 @@ jobs:
       #   with:
       #     ref: k8s  # 检出 k8s 分支
 
-      - name: Update deploy.yaml
-        run: |
-          # 获取构建的镜像标签
-          IMAGE_TAG=${{ steps.meta.outputs.tags }}
-          echo "IMAGE_TAG=$IMAGE_TAG"
-          # 更新 deploy.yaml 文件中的镜像标签
-          sed -i "s|image:.*|image: $IMAGE_TAG|" ${{ env.PROJECT }}/deploy/web-deployment.yaml
+      # - name: Update deploy.yaml
+      #   run: |
+      #     # 获取构建的镜像标签
+      #     IMAGE_TAG=${{ steps.meta.outputs.tags }}
+      #     echo "IMAGE_TAG=$IMAGE_TAG"
+      #     # 更新 deploy.yaml 文件中的镜像标签
+      #     sed -i "s|image:.*|image: $IMAGE_TAG|" ${{ env.PROJECT }}/deploy/web-deployment.yaml
 
-      - name: Commit and push changes 
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用默认的 GITHUB_TOKEN
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add ${{ env.PROJECT }}/deploy/web-deployment.yaml
-          git commit -m "Automated update of .yaml with new image tag: ${{ steps.meta.outputs.tags }}"
-          git push origin HEAD:main
+      # - name: Commit and push changes 
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用默认的 GITHUB_TOKEN
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add ${{ env.PROJECT }}/deploy/web-deployment.yaml
+      #     git commit -m "Automated update of .yaml with new image tag: ${{ steps.meta.outputs.tags }}"
+      #     git push origin HEAD:main
