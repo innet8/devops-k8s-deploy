@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: hub.hitosea.com/ttpos-web/jjjshop-web:lastest
+        image: hub.hitosea.com/ttpos-web/jjjshop-web:$version
         ports:
         - containerPort: 80
         - containerPort: 443
