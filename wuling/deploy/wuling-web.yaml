@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: wuling
-        image: docker.io/hitoseadevops/wuling:master-2b9d361
+        image: hub.hitosea.com/official-website/wuling:master-379c88f
         ports:
         - containerPort: 4000
           name: http
