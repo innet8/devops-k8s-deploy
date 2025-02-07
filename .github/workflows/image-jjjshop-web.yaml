@@ -9,13 +9,13 @@ on:
   workflow_dispatch:
     inputs:
       bgbranch: 
-        description: '后端分支'
+        description: '分支'
         required: true
-        default: 'master'
-      branch: 
-        description: '前端分支'
-        required: true
-        default: '1.1.1'
+        default: 'saas-v1.1.1'
+      # branch: 
+      #   description: '前端分支'
+      #   required: true
+      #   default: '1.1.1'
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -65,53 +65,53 @@ jobs:
           token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
           ref: ${{ github.event.inputs.bgbranch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
-      - name: Checkout the cashier code
-        uses: actions/checkout@v4
-        with:
-          path: ${{ env.cashier_path }}
-          repository: ${{ env.cashier_url }} # 目标仓库的 owner 和名称
-          token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
-          ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
+      # - name: Checkout the cashier code
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: ${{ env.cashier_path }}
+      #     repository: ${{ env.cashier_url }} # 目标仓库的 owner 和名称
+      #     token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
+      #     ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
-      - name: Checkout the kitchen code
-        uses: actions/checkout@v4
-        with:
-          path: ${{ env.kitchen_path }}
-          repository: ${{ env.kitchen_url }} # 目标仓库的 owner 和名称
-          token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
-          ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
+      # - name: Checkout the kitchen code
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: ${{ env.kitchen_path }}
+      #     repository: ${{ env.kitchen_url }} # 目标仓库的 owner 和名称
+      #     token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
+      #     ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
-      - name: Checkout the tablet code
-        uses: actions/checkout@v4
-        with:
-          path: ${{ env.tablet_path }}
-          repository: ${{ env.tablet_url }} # 目标仓库的 owner 和名称
-          token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
-          ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
+      # - name: Checkout the tablet code
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: ${{ env.tablet_path }}
+      #     repository: ${{ env.tablet_url }} # 目标仓库的 owner 和名称
+      #     token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
+      #     ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
-      - name: Checkout the scan code
-        uses: actions/checkout@v4
-        with:
-          path: ${{ env.scan_path }}
-          repository: ${{ env.scan_url }} # 目标仓库的 owner 和名称
-          token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
-          ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
+      # - name: Checkout the scan code
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: ${{ env.scan_path }}
+      #     repository: ${{ env.scan_url }} # 目标仓库的 owner 和名称
+      #     token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
+      #     ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
-      - name: Checkout the assistant code
-        uses: actions/checkout@v4
-        with:
-          path: ${{ env.assistant_path }}
-          repository: ${{ env.assistant_url }} # 目标仓库的 owner 和名称
-          token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
-          ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
+      # - name: Checkout the assistant code
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: ${{ env.assistant_path }}
+      #     repository: ${{ env.assistant_url }} # 目标仓库的 owner 和名称
+      #     token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
+      #     ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
-      - name: Checkout the menu code
-        uses: actions/checkout@v4
-        with:
-          path: ${{ env.menu_path }}
-          repository: ${{ env.menu_url }} # 目标仓库的 owner 和名称
-          token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
-          ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
+      # - name: Checkout the menu code
+      #   uses: actions/checkout@v4
+      #   with:
+      #     path: ${{ env.menu_path }}
+      #     repository: ${{ env.menu_url }} # 目标仓库的 owner 和名称
+      #     token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
+      #     ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
@@ -129,63 +129,63 @@ jobs:
           cd ${{ env.jjjshop_path }}
           echo "COMMIT_ID=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Start web build
-        run: |
-          pushd ${{ env.jjjshop_path }}/jjj_food_chain_admin
-          pnpm install
-          pnpm run build
-          popd
-          rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/admin 
-          cp -r ${{ env.jjjshop_path }}/jjj_food_chain_admin/admin ${{ env.jjjshop_path }}/jjj_food_chain/public/admin
+      # - name: Start web build
+      #   run: |
+      #     pushd ${{ env.jjjshop_path }}/jjj_food_chain_admin
+      #     pnpm install
+      #     pnpm run build
+      #     popd
+      #     rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/admin 
+      #     cp -r ${{ env.jjjshop_path }}/jjj_food_chain_admin/admin ${{ env.jjjshop_path }}/jjj_food_chain/public/admin
 
-          pushd ${{ env.jjjshop_path }}/jjj_food_chain_shop
-          pnpm install
-          pnpm run build
-          popd
-          rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/shop 
-          cp -r ${{ env.jjjshop_path }}/jjj_food_chain_shop/dist ${{ env.jjjshop_path }}/jjj_food_chain/public/shop
+      #     pushd ${{ env.jjjshop_path }}/jjj_food_chain_shop
+      #     pnpm install
+      #     pnpm run build
+      #     popd
+      #     rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/shop 
+      #     cp -r ${{ env.jjjshop_path }}/jjj_food_chain_shop/dist ${{ env.jjjshop_path }}/jjj_food_chain/public/shop
 
-          pushd ${{ env.cashier_path }}
-          pnpm install
-          pnpm run build:h5
-          popd
-          rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/cashier 
-          cp -r ${{ env.cashier_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/cashier
+      #     pushd ${{ env.cashier_path }}
+      #     pnpm install
+      #     pnpm run build:h5
+      #     popd
+      #     rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/cashier 
+      #     cp -r ${{ env.cashier_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/cashier
 
-          pushd ${{ env.kitchen_path }}
-          pnpm install
-          pnpm run build:h5
-          popd
-          rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/kitchen 
-          cp -r ${{ env.kitchen_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/kitchen
+      #     pushd ${{ env.kitchen_path }}
+      #     pnpm install
+      #     pnpm run build:h5
+      #     popd
+      #     rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/kitchen 
+      #     cp -r ${{ env.kitchen_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/kitchen
 
-          pushd ${{ env.tablet_path }}
-          pnpm install
-          pnpm run build:h5
-          popd
-          rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/tablet 
-          cp -r ${{ env.tablet_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/tablet
+      #     pushd ${{ env.tablet_path }}
+      #     pnpm install
+      #     pnpm run build:h5
+      #     popd
+      #     rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/tablet 
+      #     cp -r ${{ env.tablet_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/tablet
 
-          pushd ${{ env.scan_path }}
-          pnpm install
-          pnpm run build
-          popd
-          rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/scan 
-          cp -r ${{ env.scan_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/scan
+      #     pushd ${{ env.scan_path }}
+      #     pnpm install
+      #     pnpm run build
+      #     popd
+      #     rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/scan 
+      #     cp -r ${{ env.scan_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/scan
 
-          pushd ${{ env.assistant_path }}
-          pnpm install
-          pnpm run build
-          popd
-          rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/assistant 
-          cp -r ${{ env.assistant_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/assistant
+      #     pushd ${{ env.assistant_path }}
+      #     pnpm install
+      #     pnpm run build
+      #     popd
+      #     rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/assistant 
+      #     cp -r ${{ env.assistant_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/assistant
 
-          pushd ${{ env.menu_path }}
-          pnpm install
-          pnpm run build
-          popd
-          rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/menu 
-          cp -r ${{ env.menu_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/menu
+      #     pushd ${{ env.menu_path }}
+      #     pnpm install
+      #     pnpm run build
+      #     popd
+      #     rm -rf ${{ env.jjjshop_path }}/jjj_food_chain/public/menu 
+      #     cp -r ${{ env.menu_path }}/dist/build/h5 ${{ env.jjjshop_path }}/jjj_food_chain/public/menu
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
