@@ -42,6 +42,9 @@ spec:
   - name: http
     port: 80
     targetPort: 80
+  - name: static
+    port: 30000
+    targetPort: 30000
   - name: https
     port: 443
     targetPort: 443
