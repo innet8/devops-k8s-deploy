@@ -157,7 +157,7 @@ data:
     }
   nginx.conf: |
     user  nginx;
-    worker_processes  auto;
+    worker_processes  4;
     worker_rlimit_nofile 65535;  
     error_log  /var/log/nginx/error.log notice;
     pid        /var/run/nginx.pid;
@@ -296,73 +296,7 @@ data:
 
     [mysqlhotcopy]
     interactive-timeout
-  nginx.conf: |-
 
-    user  nginx;
-    worker_processes  auto;
-    worker_rlimit_nofile 65535;  
-    error_log  /var/log/nginx/error.log notice;
-    pid        /var/run/nginx.pid;
-
-
-    events {
-        worker_connections  65536;
-        multi_accept on;  # 单次事件循环中接受多个新连接
-        use epoll;  # Linux 环境下使用高效的 I/O 事件通知:x
-
-    }
-
-
-    http {
-        include       /etc/nginx/mime.types;
-        default_type  application/octet-stream;
-
-        proxy_cache_path /tmp/cache levels=1:2 keys_zone=my_cache:10m max_size=10g inactive=60m use_temp_path=off;
-
-
-        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-                          '$status $body_bytes_sent "$http_referer" '
-                          '"$http_user_agent" "$http_x_forwarded_for"';
-
-        access_log  /var/log/nginx/access.log  main;
-
-
-
-        sendfile        on;  # 启用高效文件传输
-        tcp_nopush      on;  # 减少网络拥塞
-        tcp_nodelay     on;  # 减少网络延迟
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-
-        proxy_read_timeout 120s;
-        keepalive_timeout  120;  # 连接保持时间
-        client_body_timeout 120;  # 客户端请求体超时
-        client_header_timeout 120;  # 客户端请求头超时
-        send_timeout 120;  # 响应发送超时
-        proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=my_cache:10m max_size=1g inactive=60m use_temp_path=off;
-
-
-        gzip on;  # 启用 gzip 压缩
-        gzip_disable "msie6";  # 禁用对 IE6 的 gzip
-        gzip_vary on;  # 向代理服务器传递 Vary: Accept-Encoding
-        gzip_proxied any;  # 允许压缩所有代理请求
-        gzip_comp_level 6;  # 压缩级别
-        gzip_buffers 16 8k;  # 缓冲区设置
-        gzip_http_version 1.1;  # HTTP 版本
-        gzip_types
-            text/plain
-            text/css
-            application/json
-            application/javascript
-            text/xml
-            application/xml
-            application/xml+rss
-            text/javascript;
-
-
-
-        include /etc/nginx/conf.d/*.conf;
-    }
   php.ini: |-
     [PHP]
     engine = On
