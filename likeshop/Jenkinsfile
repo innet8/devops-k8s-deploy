@@ -24,8 +24,8 @@ pipeline {
             sh 'mkdir -p ~/.kube/'
             sh 'echo "$KUBECONFIG_CONFIG" > ~/.kube/config'
             sh '''for file in likeshop/deploy/*; do  
-if [ "$file" == "jjjshop-saas/deploy/init-job.yaml" ]; then 
-    envsubst < $file| kubectl -n jjjshop-test apply -f - ;
+if [ "$file" == "likeshop/deploy/init-job.yaml" ]; then 
+    envsubst < $file| kubectl -n $ns apply -f - ;
 else
     kubectl -n $ns apply -f $file
 fi
