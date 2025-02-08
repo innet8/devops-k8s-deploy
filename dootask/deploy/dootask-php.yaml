@@ -29,18 +29,18 @@ spec:
           value: "production"
         - name: MYSQL_HOST
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_HOST
         - name: MYSQL_PORT
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_PORT
         - name: MYSQL_DATABASE
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_DATABASE
         - name: MYSQL_USERNAME
           valueFrom:
@@ -54,8 +54,8 @@ spec:
               key: DB_PASSWORD
         - name: DB_PREFIX
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_PREFIX
         volumeMounts:
         - name: app-data
@@ -92,3 +92,15 @@ spec:
   selector:
     app: dootask-php
 
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dootask-app-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: csi-cephfs-sc
+  resources:
+    requests:
+      storage: 20Gi

@@ -1,0 +1,3 @@
+FROM kuaifan/export-server:0.0.1
+
+COPY docker/drawio/export/fonts /usr/share/fonts/drawio

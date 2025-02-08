@@ -35,8 +35,8 @@ spec:
               key: DB_PASSWORD
         - name: DB_DATABASE
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_DATABASE
       containers:
       - name: init
@@ -129,18 +129,18 @@ spec:
           value: "1"
         - name: DB_HOST
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_HOST
         - name: DB_PORT
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_PORT
         - name: DB_DATABASE
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_DATABASE
         - name: DB_USERNAME
           valueFrom:
@@ -154,8 +154,8 @@ spec:
               key: DB_PASSWORD
         - name: DB_PREFIX
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_PREFIX
         volumeMounts:
         - name: app-data
@@ -165,15 +165,4 @@ spec:
         persistentVolumeClaim:
           claimName: dootask-app-pvc
       restartPolicy: OnFailure
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: dootask-app-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: csi-cephfs-sc
-  resources:
-    requests:
-      storage: 20Gi
+

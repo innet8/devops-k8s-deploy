@@ -18,25 +18,25 @@ spec:
         env:
         - name: TZ
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: TIMEZONE
         - name: DOO_TASK_URL
           value: "http://dootask-nginx"
         - name: MYSQL_HOST
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_HOST
         - name: MYSQL_PORT
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_PORT
         - name: MYSQL_DBNAME
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_DATABASE
         - name: MYSQL_USERNAME
           valueFrom:
@@ -50,8 +50,8 @@ spec:
               key: DB_PASSWORD
         - name: MYSQL_PREFIX
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_PREFIX
         - name: DEMO_DATA
           value: "true"

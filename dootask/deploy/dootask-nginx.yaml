@@ -39,22 +39,7 @@ spec:
         persistentVolumeClaim:
           claimName: dootask-app-pvc
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: dootask-nginx
-spec:
-  type: ClusterIP
-  ports:
-  - port: 80
-    targetPort: 80
-    name: http
-  - port: 443
-    targetPort: 443
-    name: https
-  selector:
-    app: dootask-nginx
----
+
 apiVersion: v1
 kind: Service
 metadata:

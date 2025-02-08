@@ -7,13 +7,13 @@ data:
     TIMEZONE=PRC
 
     APP_NAME=DooTask
-    APP_ENV=local
-    APP_KEY=base64:8jegjH+F2Q1eBuvruKLaIs95L/DbqhlUDo62ckj/+s8=
+    APP_ENV=cloud
+    APP_KEY=$APP_KEY
     APP_DEBUG=false
     APP_SCHEME=auto
     APP_URL=http://localhost
 
-    APP_ID=dootask-k8s
+    APP_ID=$APP_ID
     APP_IPPR=
     APP_PORT=2222
     APP_SSL_PORT=
@@ -27,9 +27,9 @@ data:
     DB_PORT=3306
     DB_DATABASE=dootask
     DB_USERNAME=dootask
-    DB_PASSWORD=4E27BA0F4D3DBDB39
+    DB_PASSWORD=$DB_PASSWORD
 
-    DB_ROOT_PASSWORD=7112d618a755dc5df42058226f1670e9db90
+    DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
     DB_PREFIX=pre_
 
     BROADCAST_DRIVER=log

@@ -1,0 +1,10 @@
+FROM onlyoffice/documentserver:8.2.2.1
+
+COPY docker/office/resources/require.js /var/www/onlyoffice/documentserver/webCOPYapps/vendor/requirejs/require.js
+COPY docker/office/resources/common/main/resources/img/header /var/www/onlyoffice/documentserver/webCOPYapps/apps/common/main/resources/img/header
+COPY docker/office/resources/documenteditor/main/resources/css/app.css /var/www/onlyoffice/documentserver/webCOPYapps/apps/documenteditor/main/resources/css/app.css
+COPY docker/office/resources/documenteditor/mobile/css/526.caf35c11a8d72ca5ac85.css /var/www/onlyoffice/documentserver/webCOPYapps/apps/documenteditor/mobile/css/526.caf35c11a8d72ca5ac85.css
+COPY docker/office/resources/presentationeditor/main/resources/css/app.css /var/www/onlyoffice/documentserver/webCOPYapps/apps/presentationeditor/main/resources/css/app.css
+COPY docker/office/resources/presentationeditor/mobile/css/923.f9cf19de1a25c2e7bf8b.css /var/www/onlyoffice/documentserver/webCOPYapps/apps/presentationeditor/mobile/css/923.f9cf19de1a25c2e7bf8b.css
+COPY docker/office/resources/spreadsheeteditor/main/resources/css/app.css /var/www/onlyoffice/documentserver/webCOPYapps/apps/spreadsheeteditor/main/resources/css/app.css
+COPY docker/office/resources/spreadsheeteditor/mobile/css/611.1bef49f175e18fc085db.css /var/www/onlyoffice/documentserver/webCOPYapps/apps/spreadsheeteditor/mobile/css/611.1bef49f175e18fc085db.css

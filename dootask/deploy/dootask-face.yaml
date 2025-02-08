@@ -20,20 +20,20 @@ spec:
         env:
         - name: TZ
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: TIMEZONE
         - name: STORAGE
           value: "mysql"
         - name: MYSQL_HOST
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_HOST
         - name: MYSQL_PORT
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_PORT
         - name: MYSQL_USERNAME
           valueFrom:
@@ -47,13 +47,13 @@ spec:
               key: DB_PASSWORD
         - name: MYSQL_DB_NAME
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_DATABASE
         - name: DB_PREFIX
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_PREFIX
         - name: REPORT_API
           value: "http://dootask-app/api/public/checkin/report"

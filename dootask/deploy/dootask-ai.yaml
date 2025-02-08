@@ -18,13 +18,13 @@ spec:
         env:
         - name: REDIS_HOST
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: REDIS_HOST
         - name: REDIS_PORT
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: REDIS_PORT
 ---
 apiVersion: v1

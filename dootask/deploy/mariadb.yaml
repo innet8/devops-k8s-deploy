@@ -71,8 +71,8 @@ spec:
               key: DB_ROOT_PASSWORD
         - name: MYSQL_DATABASE
           valueFrom:
-            configMapKeyRef:
-              name: dootask-config
+            secretKeyRef:
+              name: dootask-secret
               key: DB_DATABASE
         - name: MYSQL_USER
           valueFrom:
