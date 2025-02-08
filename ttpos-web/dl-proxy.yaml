@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dl-proxy-secret
+type: Opaque
+stringData:
+  diyl.json: |
+    {
+      "key": "value"  # 在这里添加你的 JSON 内容
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ttpos-dl-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ttpos-dl-proxy
+  template:
+    metadata:
+      labels:
+        app: ttpos-dl-proxy
+    spec:
+      containers:
+      - name: dl-proxy
+        image: hub.hitosea.com/ttpos-web/ttpos-website-dlproxy:1.0.0-prod
+        ports:
+        - containerPort: 9890
+        volumeMounts:
+        - name: diy-google
+          mountPath: /app/diyl.json
+          subPath: diyl.json  # 指定从卷中挂载的文件名
+        env:
+        - name: GOOGLE_APPLICATION_BUCKET_NAME
+          value: "dc_apk"
+      volumes:
+      - name: diy-google
+        secret:
+          secretName: dl-proxy-secret  # 替换为你的 Secret 名称
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ttpos-dl-proxy
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 9890
+    targetPort: 9890
+  selector:
+    app: ttpos-dl-proxy

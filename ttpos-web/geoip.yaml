@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ttpos-geoip
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ttpos-geoip
+  template:
+    metadata:
+      labels:
+        app: ttpos-geoip
+    spec:
+      containers:
+      - name: geoip
+        image: hub.hitosea.com/ttpos-web/ttpos-website-geoip:1.0.0-prod
+        ports:
+        - containerPort: 9797
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ttpos-geoip
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 9797
+    targetPort: 9797
+  selector:
+    app: ttpos-geoip

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ttpos-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ttpos-web-app
+  template:
+    metadata:
+      labels:
+        app: ttpos-web-app
+    spec:
+      containers:
+      - name: app
+        image: hub.hitosea.com/ttpos-web/ttpos-website:2.3.12-prod
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ttpos-web
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3000
+    targetPort: 3000
+  selector:
+    app: ttpos-web-app
