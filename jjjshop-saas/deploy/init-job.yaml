@@ -51,16 +51,19 @@ spec:
             if [ ! -d ".git" ]; then
                 git clone -b $BRANCH https://$GIT_TOKEN@github.com/innet8/jjjshop.git 
                 cd jjjshop/jjj_food_chain/
+                export COMPOSER_ALLOW_SUPERUSER=1
                 composer install --ignore-platform-reqs
-
             else
                 cd jjjshop/jjj_food_chain/
                 git pull
+                export COMPOSER_ALLOW_SUPERUSER=1
                 composer update --ignore-platform-reqs
             fi
             php think migrate:run
             php think clear-cache
             php think get-mac-addr
+            php think renewal:info
+            
             chown -R www-data:www-data ./app
             chown -R www-data:www-data ./public
             chown -R www-data:www-data ./runtime
