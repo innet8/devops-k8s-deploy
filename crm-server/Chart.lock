@@ -1,0 +1,9 @@
+dependencies:
+- name: mariadb-galera
+  repository: https://images.diylink.net/repository/diylink-app/
+  version: 13.2.4
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 20.2.1
+digest: sha256:64fcafe210e222124ca9390280de3f435ab0ec67d3d943dd5472310d3fb49607
+generated: "2025-01-21T18:01:51.782242+08:00"

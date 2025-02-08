@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dolibarr
+  namespace: {{ .Release.Namespace }}
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dolibarr
+  template:
+    metadata:
+      labels:
+        app: dolibarr
+    spec:
+      containers:
+      - name: dolibarr
+        image: dolibarr/dolibarr:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: WWW_USER_ID
+          value: "1000"  # 或者使用从 ConfigMap/Secret 中引用的方式
+        - name: WWW_GROUP_ID
+          value: "1000"
+        - name: DOLI_DB_HOST
+          value: "mariadb"  # 确保 MariaDB 服务在 Kubernetes 中是可访问的
+        - name: DOLI_DB_NAME
+          value: "dolidb"
+        - name: DOLI_DB_USER
+          value: "dolidbuser"
+        - name: DOLI_DB_PASSWORD
+          value: "dolidbpass"
+        - name: DOLI_URL_ROOT
+          value: "http://crm-server"
+        - name: DOLI_ADMIN_LOGIN
+          value: "admin"
+        - name: DOLI_ADMIN_PASSWORD
+          value: "admin"
+        - name: DOLI_CRON
+          value: "0"
+        - name: DOLI_INIT_DEMO
+          value: "0"
+        - name: DOLI_COMPANY_NAME
+          value: "MyBigCompany"
+        volumeMounts:
+        - name: dolibarr-documents
+          mountPath: /var/www/documents
+        - name: dolibarr-custom
+          mountPath: /var/www/html/custom
+      volumes:
+      - name: dolibarr-documents
+        persistentVolumeClaim:
+          claimName: dolibarr-documents-pvc
+      - name: dolibarr-custom
+        persistentVolumeClaim:
+          claimName: dolibarr-custom-pvc

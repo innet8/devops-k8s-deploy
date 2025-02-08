@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: check-db
+  namespace: {{ .Release.Namespace }}
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: check-db
+  template:
+    metadata:
+      labels:
+        app: check-db
+    spec:
+      containers:
+        - name: check-db
+          image: hub.hitosea.com/diylink/vdpa:v240724
+          command:
+            - /bin/bash
+            - '-c'
+            - |
+              #!/bin/bash
+              apt-get update 
+              apt-get install -y curl mariadb-client 
+              while true
+              do 
+
+                      namespace="{{ .Release.Namespace }}"
+                      svcname="{{ .Release.Name }}-mariadb-galera"
+                      ###mariadb count 
+                      number="{{ .Values.replicaCount }}"
+                      user="{{ .Values.rootUser.user }}"
+                      password="{{ .Values.rootUser.password }}"
+
+
+                      rm -rf /tmp/$namespace
+                      # 在循环中或其他地方自增
+                      echo """mariadb_galera_Replicas{namespace=\"$namespace\",number=\"$number\"} $number""" >/tmp/$namespace
+
+                      i=0
+                      for ((j = 0; j < 2; j++)); do
+                          wsrep_cluster_size=$(mysql -u$user -p$password -h$svcname-$j.$svcname-headless -e "SHOW GLOBAL STATUS LIKE 'wsrep_cluster_size';" 2>/dev/null | grep -v "Value" | awk '{print $2}')
+                          uuid=$(mysql -u$user -p$password -h$svcname-$j.$svcname-headless -e "SHOW GLOBAL STATUS LIKE 'wsrep_cluster_state_uuid';" 2>/dev/null | grep -v "Value" | awk '{print $2}')
+                          rsync=$(mysql -u$user -p$password -h$svcname-$j.$svcname-headless -e "SHOW GLOBAL STATUS LIKE 'wsrep_local_state_comment';" 2>/dev/null | grep -v "Value" | awk '{print $2}')
+                          connect_status=$(mysql -u$user -p$password -h$svcname-$j.$svcname-headless -e "SHOW GLOBAL STATUS LIKE 'wsrep_connected';" 2>/dev/null | grep -v "Value" | awk '{print $2}')
+                          number=$wsrep_cluster_size
+                          echo """wsrep_cluster_size{number=\"$number\",namespace=\"$namespace\",uuid=\"$uuid\",rsync=\"$rsync\",connect_status=\"$connect_status\",pod=\"$namespace-$svcname-$j\"} $number""" >>/tmp/$namespace
+                          ((i++))
+                      done
+
+                      cat /tmp/$namespace | curl --data-binary @- http://pushgateway.lens-metrics:9091/metrics/job/$namespace
+                      sleep 15
+              done 
