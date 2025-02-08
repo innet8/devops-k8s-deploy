@@ -118,8 +118,8 @@ jobs:
           context: ./${{ env.PROJECT_PATH }}
           file: ./${{ env.PROJECT_PATH }}/Dockerfile.export
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta1.outputs.tags }}
+          labels: ${{ steps.meta1.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -140,7 +140,7 @@ jobs:
           context: ${{ env.PROJECT_PATH }}
           file: ./${{ env.PROJECT_PATH }}/Dockerfile.office
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta2.outputs.tags }}
+          labels: ${{ steps.meta2.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
