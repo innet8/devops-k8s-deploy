@@ -55,11 +55,24 @@ spec:
 
             if [ ! -d "likeshop" ]; then
                 git clone -b $BRANCH https://$GIT_TOKEN@github.com/innet8/likeshop.git 
+                export COMPOSER_ALLOW_SUPERUSER=1
+                composer install --ignore-platform-reqs 
             else
                 cd likeshop/
                 git pull
+                export COMPOSER_ALLOW_SUPERUSER=1
+                composer update --ignore-platform-reqs
             fi
-            
+            cd /usr/src/likeshop/server
+            cp .example.env .env
+            sed -i 's/127.0.0.1/$DB_HOST' .env
+            sed -i 's/username/$DB_USERNAME' .env
+            sed -i 's/password/$DB_PASSWORD' .env
+            sed -i 's/test/$DB_DATABASE' .env
+            chown -R www-data:www-data ./public
+            chown -R www-data:www-data ./runtime
+            chown -R www-data:www-data ./config
+            chown -R www-data:www-data ./.env
             echo "Preparation completed successfully" > .success
         env:
         - name: DB_DATABASE
@@ -77,6 +90,11 @@ spec:
             secretKeyRef:
               name: db-secrets
               key: DB_PASSWORD
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: DB_HOST
         volumeMounts:
         - name: likeshop-php-data
           mountPath: /usr/src
