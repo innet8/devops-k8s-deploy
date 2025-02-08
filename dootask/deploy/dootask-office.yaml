@@ -15,7 +15,7 @@ spec:
 
       containers:
       - name: office
-        image: hub.hitosea.com/dootask/office:0.0.1
+        image: hub.hitosea.com/dootask/office:v0.0.1
         env:
         - name: JWT_SECRET
           valueFrom:

@@ -84,7 +84,7 @@ data:
             proxy_pass http://service;
         }
     }
-    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/conf.d/conf.d/*.conf;
 ---
 apiVersion: v1
 kind: ConfigMap
