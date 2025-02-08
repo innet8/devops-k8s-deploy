@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: likeshop-php
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: likeshop-php
+  template:
+    metadata:
+      labels:
+        app: likeshop-php
+    spec:
+      # initContainers:
+      # - name: wait-for-job
+      #   image: busybox
+      #   command: ['sh', '-c', 'until [ -f "/var/www/likeshop/jjj_food_chain/.success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
+      #   volumeMounts:
+      #   - name: likeshop-php-data
+      #     mountPath: /var/www
+      containers:
+      - name: php
+        image: likeshop-php:8.0
+        ports:
+          - containerPort: 9000
+            protocol: TCP
+        volumeMounts:
+          - name: likeshop-php-data
+            mountPath: /usr/src/
+      volumes:
+      - name: likeshop-php-data
+        persistentVolumeClaim:
+          claimName: php-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: likeshop-php
+spec:
+  selector:
+    app: likeshop-php
+  ports:
+    - protocol: TCP
+      port: 9000

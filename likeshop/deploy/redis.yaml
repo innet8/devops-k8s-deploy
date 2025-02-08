@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: likeshop-redis
+spec:
+  selector:
+    matchLabels:
+      app: likeshop-redis
+  template:
+    metadata:
+      labels:
+        app: likeshop-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        command: ["redis-server", "--appendonly yes"]
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: likeshop-redis
+spec:
+  selector:
+    app: likeshop-redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379

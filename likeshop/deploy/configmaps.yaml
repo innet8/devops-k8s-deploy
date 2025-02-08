@@ -1,0 +1,15 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-config
+data:
+  DB_HOST: "likeshop-mariadb"
+  DB_PORT: "3306"
+  DB_DATABASE: "saas"
+  DB_USERNAME: jjj
+  DB_PREFIX: "jjjfood_"
+  REDIS_HOST: "likeshop-redis"
+  REDIS_PORT: "6379"
+  TIMEZONE: "PRC"
+---

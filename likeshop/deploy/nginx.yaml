@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: likeshop-web
+spec:
+  selector:
+    matchLabels:
+      app: likeshop-web
+  template:
+    metadata:
+      labels:
+        app: likeshop-web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        command: ["sh", "-c","envsubst likeshop < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g daemon off;"]
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+          - name: likeshop-php-data
+            mountPath: /usr/src/
+          - name: nginx-config
+            mountPath: /etc/nginx/conf.d
+            subPath: likeshop/server/docker/nginx
+      volumes:
+      - name: likeshop-php-data
+        persistentVolumeClaim:
+          claimName: php-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  type: ClusterIP
+  selector:
+    app: likeshop-web
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: static
+    port: 30000
+    targetPort: 30000
+  - name: https
+    port: 443
+    targetPort: 443

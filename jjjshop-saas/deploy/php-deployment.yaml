@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jjjshop-php
-  namespace: jjjshop-test
 spec:
   replicas: 1
   selector:
@@ -23,6 +22,9 @@ spec:
       containers:
       - name: php
         image: hitosea2020/php-fpm:1.0.6
+        ports:
+          - containerPort: 9000
+            protocol: TCP
         volumeMounts:
           - name: jjjshop-php-data
             mountPath: /var/www
@@ -61,3 +63,14 @@ spec:
       - name: env
         configMap:
           name: env-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jjjshop-php
+spec:
+  selector:
+    app: jjjshop-php
+  ports:
+    - protocol: TCP
+      port: 9000
