@@ -1,0 +1,49 @@
+pipeline {
+  agent {
+    node {
+      label 'base'
+    }
+
+  }
+  stages {
+    stage('clone code') {
+      steps {
+        container('nodejs') {
+          git(url: 'https://github.com/innet8/devops-k8s-deploy.git', credentialsId: '<no value>', branch: 'main', changelog: true, poll: false)
+        }
+
+      }
+    }
+
+    stage('deploy to dev') {
+      agent none
+      steps {
+        container('base') {
+          input(id: 'deploy-to-dev', message: 'deploy to dev?')
+          withCredentials([kubeconfigContent(credentialsId: 'k8s', variable: 'KUBECONFIG_CONFIG')]) {
+            sh 'mkdir -p ~/.kube/'
+            sh 'echo "$KUBECONFIG_CONFIG" > ~/.kube/config'
+            sh '''for file in jjjshop-saas/deploy/*; do  
+if [[ "$file" == "jjjshop-saas/deploy/init-job.yaml" || "$file" == "jjjshop-saas/deploy/web-deployment.yaml" ]]; then 
+    envsubst < $file| kubectl -n jjjshop-test apply -f - ;
+else
+    kubectl -n jjjshop-test apply -f $file
+fi
+done'''
+          }
+
+        }
+
+      }
+    }
+
+  }
+  environment {
+    BRANCH = 'saas-v1.1.1'
+    GIT_TOKEN = ''
+    version = 'latest'
+  }
+  parameters {
+    string(name: 'TAG_NAME', defaultValue: '', description: '')
+  }
+}
