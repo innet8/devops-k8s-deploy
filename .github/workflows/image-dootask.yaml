@@ -48,8 +48,9 @@ jobs:
 
       - name: Copy dockerfile
         run: |
-          cp ${{ env.PROJECT }}/Dockerfile* ${{ env.PROJECT_PATH }}/
+          cp ${{ env.PROJECT }}/Dockerfile.* ${{ env.PROJECT_PATH }}/
           cd ${{ env.PROJECT_PATH }}
+          ls 
           echo "COMMIT_ID=$(git log -1 --pretty=format:%h -- .)" >> $GITHUB_OUTPUT
 
       # Install the cosign tool except on PR
