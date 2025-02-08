@@ -81,70 +81,14 @@ spec:
         configMap:
           name: dootask-env-config
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: dootask-nginx
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: dootask-nginx
-  template:
-    metadata:
-      labels:
-        app: dootask-nginx
-    spec:
-      initContainers:
-      - name: wait-for-job
-        image: busybox
-        command: ['sh', '-c', 'until [ -f "/app/success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
-        volumeMounts:
-        - name: app-data
-          mountPath: /app
-      containers:
-      - name: nginx
-        image: nginx:alpine
-        ports:
-        - containerPort: 80
-          name: http
-        - containerPort: 443
-          name: https
-        volumeMounts:
-        - name: app-data
-          mountPath: /etc/nginx/conf.d
-          subPath: nginx/conf.d
-        - name: app-data
-          mountPath: /var/www/public
-          subPath: www/public
-      volumes:
-      - name: app-data
-        persistentVolumeClaim:
-          claimName: dootask-app-pvc
----
 apiVersion: v1
 kind: Service
 metadata:
-  name: dootask-nginx
+  name: dootask-php
 spec:
-  type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 80
+  - port: 20000
     name: http
-  - port: 443
-    targetPort: 443
-    name: https
   selector:
-    app: dootask-nginx
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx
-spec:
-  ports:
-    - port: 80
-      targetPort: 80
-  selector:
-    app: dootask-nginx
+    app: dootask-php
+

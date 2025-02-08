@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-drawio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-drawio
+  template:
+    metadata:
+      labels:
+        app: dootask-drawio
+    spec:
+      initContainers:
+      - name: wait-for-job
+        image: busybox
+        command: ['sh', '-c', 'until [ -f "/app/success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
+        volumeMounts:
+        - name: app-data
+          mountPath: /app
+      containers:
+      - name: drawio-webapp
+        image: jgraph/drawio:24.7.17
+        volumeMounts:
+        - name: app-data
+          mountPath: /usr/local/tomcat/webapps/draw/index.html
+          subPath: drawio/webapp/index.html
+        - name: app-data
+          mountPath: /usr/local/tomcat/webapps/draw/stencils
+          subPath: drawio/webapp/stencils
+        - name: app-data
+          mountPath: /usr/local/tomcat/webapps/draw/js/app.min.js
+          subPath: drawio/webapp/js/app.min.js
+        - name: app-data
+          mountPath: /usr/local/tomcat/webapps/draw/js/croppie/croppie.min.css
+          subPath: drawio/webapp/js/croppie/croppie.min.css
+        - name: app-data
+          mountPath: /usr/local/tomcat/webapps/draw/js/diagramly/ElectronApp.js
+          subPath: drawio/webapp/js/diagramly/ElectronApp.js
+      - name: drawio-export
+        image: kuaifan/export-server:0.0.1
+        volumeMounts:
+        - name: app-data
+          mountPath: /usr/share/fonts/drawio
+          subPath: drawio/export/fonts
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: dootask-app-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-drawio
+spec:
+  ports:
+  - name: webapp
+    port: 8080
+    targetPort: 8080
+  - name: export
+    port: 8000
+    targetPort: 8000
+  selector:
+    app: dootask-drawio

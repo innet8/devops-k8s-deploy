@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-office
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-office
+  template:
+    metadata:
+      labels:
+        app: dootask-office
+    spec:
+      initContainers:
+      - name: wait-for-job
+        image: busybox
+        command: ['sh', '-c', 'until [ -f "/app/success" ]; do echo "waiting for init-job to complete"; sleep 2; done']
+        volumeMounts:
+        - name: app-data
+          mountPath: /app
+      containers:
+      - name: office
+        image: onlyoffice/documentserver:8.2.2.1
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: APP_KEY
+        volumeMounts:
+        - name: app-data
+          mountPath: /var/log/onlyoffice
+          subPath: office/logs
+        - name: app-data
+          mountPath: /var/www/onlyoffice/Data
+          subPath: office/data
+        - name: app-data
+          mountPath: /var/www/onlyoffice/documentserver/web-apps/vendor/requirejs/require.js
+          subPath: office/resources/require.js
+        - name: app-data
+          mountPath: /var/www/onlyoffice/documentserver/web-apps/apps/common/main/resources/img/header
+          subPath: office/resources/common/main/resources/img/header
+        - name: app-data
+          mountPath: /var/www/onlyoffice/documentserver/web-apps/apps/documenteditor/main/resources/css/app.css
+          subPath: office/resources/documenteditor/main/resources/css/app.css
+        - name: app-data
+          mountPath: /var/www/onlyoffice/documentserver/web-apps/apps/documenteditor/mobile/css/526.caf35c11a8d72ca5ac85.css
+          subPath: office/resources/documenteditor/mobile/css/526.caf35c11a8d72ca5ac85.css
+        - name: app-data
+          mountPath: /var/www/onlyoffice/documentserver/web-apps/apps/presentationeditor/main/resources/css/app.css
+          subPath: office/resources/presentationeditor/main/resources/css/app.css
+        - name: app-data
+          mountPath: /var/www/onlyoffice/documentserver/web-apps/apps/presentationeditor/mobile/css/923.f9cf19de1a25c2e7bf8b.css
+          subPath: office/resources/presentationeditor/mobile/css/923.f9cf19de1a25c2e7bf8b.css
+        - name: app-data
+          mountPath: /var/www/onlyoffice/documentserver/web-apps/apps/spreadsheeteditor/main/resources/css/app.css
+          subPath: office/resources/spreadsheeteditor/main/resources/css/app.css
+        - name: app-data
+          mountPath: /var/www/onlyoffice/documentserver/web-apps/apps/spreadsheeteditor/mobile/css/611.1bef49f175e18fc085db.css
+          subPath: office/resources/spreadsheeteditor/mobile/css/611.1bef49f175e18fc085db.css
+      - name: office-logs
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          tail -F /var/log/onlyoffice/*.log 2>/dev/null || true
+        volumeMounts:
+        - name: app-data
+          mountPath: /var/log/onlyoffice
+          subPath: office
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: dootask-app-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-office
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: dootask-office

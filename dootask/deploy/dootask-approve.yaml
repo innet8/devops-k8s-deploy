@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-approve
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-approve
+  template:
+    metadata:
+      labels:
+        app: dootask-approve
+    spec:
+      containers:
+      - name: approve
+        image: kuaifan/dooapprove:0.1.5
+        env:
+        - name: TZ
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: TIMEZONE
+        - name: MYSQL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_HOST
+        - name: MYSQL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PORT
+        - name: MYSQL_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_DATABASE
+        - name: MYSQL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_USERNAME
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PASSWORD
+        - name: MYSQL_Prefix
+          value: "pre_approve_"
+        - name: DEMO_DATA
+          value: "true"
+        - name: KEY
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: APP_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-approve
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: dootask-approve

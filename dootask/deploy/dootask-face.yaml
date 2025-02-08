@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-face
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-face
+  template:
+    metadata:
+      labels:
+        app: dootask-face
+    spec:
+      containers:
+      - name: face
+        image: hitosea2020/dooface:0.0.1
+        ports:
+        - containerPort: 7788
+        env:
+        - name: TZ
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: TIMEZONE
+        - name: STORAGE
+          value: "mysql"
+        - name: MYSQL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_HOST
+        - name: MYSQL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PORT
+        - name: MYSQL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_USERNAME
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PASSWORD
+        - name: MYSQL_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_DATABASE
+        - name: DB_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PREFIX
+        - name: REPORT_API
+          value: "http://dootask-app/api/public/checkin/report"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-face
+spec:
+  ports:
+  - port: 7788
+    name: http
+  selector:
+    app: dootask-face

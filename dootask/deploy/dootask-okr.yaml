@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-okr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-okr
+  template:
+    metadata:
+      labels:
+        app: dootask-okr
+    spec:
+      containers:
+      - name: okr
+        image: kuaifan/doookr:0.4.5
+        env:
+        - name: TZ
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: TIMEZONE
+        - name: DOO_TASK_URL
+          value: "http://dootask-nginx"
+        - name: MYSQL_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_HOST
+        - name: MYSQL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PORT
+        - name: MYSQL_DBNAME
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_DATABASE
+        - name: MYSQL_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_USERNAME
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PASSWORD
+        - name: MYSQL_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: DB_PREFIX
+        - name: DEMO_DATA
+          value: "true"
+        - name: KEY
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: APP_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-okr
+spec:
+  ports:
+  - port: 5566
+    targetPort: 5566
+  selector:
+    app: dootask-okr

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-fileview
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-fileview
+  template:
+    metadata:
+      labels:
+        app: dootask-fileview
+    spec:
+      containers:
+      - name: fileview
+        image: kuaifan/fileview:4.2.0-SNAPSHOT-RC25
+        env:
+        - name: KK_CONTEXT_PATH
+          value: "/fileview"
+        - name: KK_OFFICE_PREVIEW_SWITCH_DISABLED
+          value: "true"
+        - name: KK_FILE_UPLOAD_ENABLED
+          value: "true"
+        - name: KK_MEDIA
+          value: "mp3,wav,mp4,mov,avi,wmv"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-fileview
+spec:
+  ports:
+  - port: 8012
+    targetPort: 8012
+  selector:
+    app: dootask-fileview

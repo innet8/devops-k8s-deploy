@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dootask-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-ai
+  template:
+    metadata:
+      labels:
+        app: dootask-ai
+    spec:
+      containers:
+      - name: ai
+        image: kuaifan/dootask-ai:0.2.6
+        env:
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: dootask-config
+              key: REDIS_PORT
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-ai
+spec:
+  ports:
+  - port: 5001
+    targetPort: 5001
+  selector:
+    app: dootask-ai
