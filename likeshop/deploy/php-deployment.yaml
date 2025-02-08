@@ -21,7 +21,7 @@ spec:
       #     mountPath: /var/www
       containers:
       - name: php
-        image: likeshop-php:8.0
+        image: php:8.0-fpm
         ports:
           - containerPort: 9000
             protocol: TCP
