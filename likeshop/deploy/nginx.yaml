@@ -21,7 +21,7 @@ spec:
         volumeMounts:
           - name: likeshop-php-data
             mountPath: /usr/src/
-          - name: nginx-config
+          - name: likeshop-php-data
             mountPath: /etc/nginx/conf.d
             subPath: likeshop/server/docker/nginx
       volumes:
