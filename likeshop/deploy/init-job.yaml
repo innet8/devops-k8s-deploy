@@ -59,7 +59,7 @@ spec:
                 cd likeshop/
                 git pull
             fi
-           
+            
             echo "Preparation completed successfully" > .success
         env:
         - name: DB_DATABASE

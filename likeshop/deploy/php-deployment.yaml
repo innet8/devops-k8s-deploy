@@ -21,7 +21,7 @@ spec:
       #     mountPath: /var/www
       containers:
       - name: php
-        image: php:8.0-fpm
+        image: hub.hitosea.com/likeshop/php-app:v0.0.1
         ports:
           - containerPort: 9000
             protocol: TCP
@@ -36,7 +36,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: likeshop-php
+  name: php
 spec:
   selector:
     app: likeshop-php
