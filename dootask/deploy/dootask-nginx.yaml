@@ -28,9 +28,10 @@ spec:
         - containerPort: 443
           name: https
         volumeMounts:
-        - name: app-data
+        - name: site
+          mountPath: /etc/nginx/conf.d/site
+        - name: confd
           mountPath: /etc/nginx/conf.d
-          subPath: nginx/conf.d
         - name: app-data
           mountPath: /var/www/public
           subPath: www/public
@@ -38,6 +39,12 @@ spec:
       - name: app-data
         persistentVolumeClaim:
           claimName: dootask-app-pvc
+      - name: site
+        configMap:
+          name: nginx-site-config
+      - name: confd
+        configMap:
+          name: nginx-config
 ---
 
 apiVersion: v1

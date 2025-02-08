@@ -79,7 +79,7 @@ spec:
           claimName: dootask-app-pvc
       - name: env-config
         configMap:
-          name: dootask-env-config
+          name: dootask-config
 ---
 apiVersion: v1
 kind: Service
@@ -104,3 +104,5 @@ spec:
   resources:
     requests:
       storage: 20Gi
+
+---
