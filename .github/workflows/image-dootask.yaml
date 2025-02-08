@@ -21,8 +21,8 @@ env:
   IMAGE_NAME_EXPORT: dootask/export-server
   IMAGE_NAME_OFFICE: dootask/office
   PROJECT: dootask
-  URL: kuaifan/dootask
-  PATH: dootask-pro
+  PROJECT_URL: kuaifan/dootask
+  PROJECT_PATH: dootask-pro
 
 
 jobs:
@@ -41,15 +41,15 @@ jobs:
       - name: Checkout the dootask code
         uses: actions/checkout@v4
         with:
-          path: ${{ env.PATH }}
-          repository: ${{ env.URL }} # 目标仓库的 owner 和名称
+          path: ${{ env.PROJECT_PATH }}
+          repository: ${{ env.PROJECT_URL }} # 目标仓库的 owner 和名称
           token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
           ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
       - name: Copy dockerfile
         run: |
-          cp ${{ env.PROJECT }}/Dockerfile* ${{ env.PATH }}/
-          cd ${{ env.PATH }}
+          cp ${{ env.PROJECT }}/Dockerfile* ${{ env.PROJECT_PATH }}/
+          cd ${{ env.PROJECT_PATH }}
           echo "COMMIT_ID=$(git log -1 --pretty=format:%h -- .)" >> $GITHUB_OUTPUT
 
       # Install the cosign tool except on PR
@@ -91,7 +91,7 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: ${{ env.PATH }}
+          context: ${{ env.PROJECT_PATH }}
           file: Dockerfile.drawio
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -112,7 +112,7 @@ jobs:
         id: build-and-push1
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: ${{ env.PATH }}
+          context: ${{ env.PROJECT_PATH }}
           file: Dockerfile.export
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -133,7 +133,7 @@ jobs:
         id: build-and-push2
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
-          context: ${{ env.PATH }}
+          context: ${{ env.PROJECT_PATH }}
           file: Dockerfile.office
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
