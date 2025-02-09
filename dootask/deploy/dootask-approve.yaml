@@ -12,6 +12,11 @@ spec:
       labels:
         app: dootask-approve
     spec:
+      initContainers:
+      - name: wait-for-job
+        image: curlimages/curl
+        command: ['sh', '-c', 'until curl -s http://dootask-php:20000; do echo "等待后端服务启动..."; sleep 5; done']
+
       containers:
       - name: approve
         image: kuaifan/dooapprove:0.1.5
