@@ -60,7 +60,7 @@ spec:
         volumeMounts:
         - name: app-data
           mountPath: /var/www
-          subPath: www
+          subPath: dootask
         - name: app-data
           mountPath: /etc/supervisor/conf.d/
           subPath: supervisor/conf.d/
