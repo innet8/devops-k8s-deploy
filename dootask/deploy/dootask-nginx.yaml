@@ -34,7 +34,7 @@ spec:
           mountPath: /etc/nginx/conf.d
         - name: app-data
           mountPath: /var/www/public
-          subPath: www/public
+          subPath: dootask/public
       volumes:
       - name: app-data
         persistentVolumeClaim:
