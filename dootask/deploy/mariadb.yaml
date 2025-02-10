@@ -14,6 +14,20 @@ spec:
       labels:
         app: dootask-mariadb
     spec:
+      initContainers:
+        - command:
+            - rm
+            - -fr
+            - /var/lib/postgresql/data/lost+found
+          image: busybox
+          name: remove-lost-found
+          resources:
+            requests:
+              cpu: 10m
+              memory: 10Mi
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-data
       containers:
       - name: mariadb
         image: mariadb:10.7.3
