@@ -1,11 +1,2 @@
 # devops-k8s-deploy
-111
-
-
-for file in jjjshop-saas/deploy/*; do  
-if [[ "$file" == "jjjshop-saas/deploy/init-job.yaml" || "$file" == "jjjshop-saas/deploy/web-deployment.yaml" ]]; then 
-    envsubst < $file| kubectl -n jjjshop-test apply -f - ;
-else
-    kubectl -n jjjshop-test apply -f $file
-fi
-done
+{"url":"dootask-approve\/api\/v1\/workflow\/procdef\/findAll","post":"{\"name\":null}","error":"Protocol \"\" not supported or disabled in libcurl"}

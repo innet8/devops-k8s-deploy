@@ -57,6 +57,8 @@ spec:
             secretKeyRef:
               name: dootask-secret
               key: DB_PREFIX
+        - name: FLOW_URL
+          value: http://dootask-approve
         volumeMounts:
         - name: app-data
           mountPath: /var/www

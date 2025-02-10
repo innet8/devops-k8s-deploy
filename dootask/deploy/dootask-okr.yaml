@@ -27,7 +27,7 @@ spec:
               name: dootask-secret
               key: TIMEZONE
         - name: DOO_TASK_URL
-          value: "http://dootask-nginx"
+          value: "http://nginx"
         - name: MYSQL_HOST
           valueFrom:
             secretKeyRef:
