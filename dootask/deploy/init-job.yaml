@@ -148,7 +148,7 @@ spec:
             fi
             md5_password=$(echo -n `echo -n $new_password | md5sum | awk '{print $1}'`$new_encrypt | md5sum | awk '{print $1}')
 
-            content=$(echo "select \`email\` from ${MYSQL_PREFIX}users where \`userid\`=1;" | mysql -u$DB_USERNAME -p$DB_PASSWORD $DB_DATABASE)
+            content=$(echo "select \`email\` from ${DB_PREFIX}users where \`userid\`=1;" | mysql -u$DB_USERNAME -p$DB_PASSWORD $DB_DATABASE)
             account=$(echo "$content" | sed -n '2p')
 
             if [ -z "$account" ]; then
