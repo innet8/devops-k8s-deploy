@@ -1,0 +1,75 @@
+pipeline {
+  agent {
+    node {
+      label 'base'
+    }
+
+  }
+  stages {
+    stage('stage-rej3t') {
+      agent none
+      steps {
+        echo "$params.NS,$params.APP_ID,$params.APP_KEY"
+      }
+    }
+
+    stage('clone code') {
+      agent none
+      when {
+        not {
+          environment name: 'NS', value: 'dootask-test'
+        }
+
+      }
+      steps {
+        container('nodejs') {
+          git(url: 'https://github.com/innet8/devops-k8s-deploy.git', credentialsId: '<no value>', branch: 'main', changelog: true, poll: false)
+        }
+
+      }
+    }
+
+    stage('deploy to dev') {
+      agent none
+      when {
+        not {
+          environment name: 'NS', value: 'dootask-test'
+        }
+
+      }
+      steps {
+        container('base') {
+          input(id: 'deploy-to-dev', message: 'deploy to dev?')
+          withCredentials([kubeconfigContent(credentialsId: 'k8s', variable: 'KUBECONFIG_CONFIG')]) {
+            sh 'mkdir -p ~/.kube/'
+            sh 'echo "$KUBECONFIG_CONFIG" > ~/.kube/config'
+            sh '''for file in dootask/deploy/*; do  
+if [[ "$file" == "dootask/deploy/config.yaml" || "$file" == "dootask/deploy/ingress.yaml" ]]; then 
+    envsubst < $file| kubectl -n $NS apply -f - ;
+else
+    kubectl -n $NS apply -f $file
+fi
+done'''
+          }
+
+        }
+
+      }
+    }
+
+  }
+  environment {
+    DB_PASSWORD = "$params.DB_PASSWORD"
+    DB_ROOT_PASSWORD = "$params.DB_ROOT_PASSWORD"
+    APP_KEY = "$params.APP_KEY"
+    APP_ID = "$params.APP_ID"
+    NS = "$params.NS"
+  }
+  parameters {
+    string(name: 'DB_PASSWORD', defaultValue: '', description: '')
+    string(name: 'DB_ROOT_PASSWORD', defaultValue: '', description: '')
+    string(name: 'APP_KEY', defaultValue: '', description: '')
+    string(name: 'APP_ID', defaultValue: '', description: '')
+    string(name: 'NS', defaultValue: 'dootask-test', description: '')
+  }
+}
