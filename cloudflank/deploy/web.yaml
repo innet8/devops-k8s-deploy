@@ -25,33 +25,33 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: caddy
+  labels:
+    app: caddy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: caddy
   template:
     metadata:
       labels:
-        app: nginx
+        app: caddy
     spec:
       containers:
-      - name: nginx
-        image: nginx:latest
+      - name: caddy
+        image: caddy:2.6.2-alpine
         ports:
         - containerPort: 80
         - containerPort: 443
         volumeMounts:
-        - name: nginx-config
-          mountPath: /etc/nginx/conf.d/cloudflank.conf
-          subPath: cloudflank.conf  # 挂载 cloudflare.conf
-
+        - name: caddyfile
+          mountPath: /etc/caddy/Caddyfile
+          subPath: Caddyfile
       volumes:
-      - name: nginx-config
+      - name: caddyfile
         configMap:
           name: cloudflank-config
-
 ---
 apiVersion: v1
 kind: Service
@@ -60,7 +60,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 80
+  - port: 3000
     targetPort: 3000
     name: http
   selector:
@@ -69,9 +69,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
+  name: caddy
   labels:
-    app: nginx
+    app: caddy
 spec:
   type: ClusterIP
   ports:
@@ -88,4 +88,4 @@ spec:
     protocol: UDP
     name: https-udp
   selector:
-    app: nginx
+    app: caddy

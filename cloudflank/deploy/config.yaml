@@ -3,52 +3,30 @@ kind: ConfigMap
 metadata:
   name: cloudflank-config
 data:
-  cloudflank.conf: |
-    server {
-        listen 80;
-
-        # 处理 /api/verify-turnstile 路径
-        location /api/verify-turnstile {
-            proxy_pass http://app:3000;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # 处理 /api/proxy-form 路径
-        location /api/proxy-form {
-            proxy_pass http://app:3000;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-
-        # 处理 /api/* 路径
-        location /api/ {
-            proxy_pass http://103.63.139.238;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_set_header X-Forwarded-For $host;
-            proxy_set_header Host $host;
-        }
-
-        # 处理 /uploads/* 路径
-        location /uploads/ {
-            proxy_pass http://103.63.139.238;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_set_header X-Forwarded-For $host;
-            proxy_set_header Host $host;
-        }
-
-        # 默认反向代理到 app:3000
-        location / {
-            proxy_pass http://app:3000;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
+  Caddyfile: |
+    cloudflank.keli.vip {
+          
+            handle /api/verify-turnstile {
+                    reverse_proxy http://app:3000
+            }
+            handle /api/proxy-form {
+                    reverse_proxy http://app:3000
+            }
+            handle /api/* {
+                    reverse_proxy 103.63.139.238 {
+                            header_up X-Real-IP {remote}
+                            header_up X-Forwarded-Proto {scheme}
+                            header_up X-Forwarded-For {host}
+                            header_up Host {host}
+                    }
+            }
+            handle /uploads/* {
+                    reverse_proxy 103.63.139.238 {
+                            header_up X-Real-IP {remote}
+                            header_up X-Forwarded-Proto {scheme}
+                            header_up X-Forwarded-For {host}
+                            header_up Host {host}
+                    }
+            }
+            reverse_proxy http://app:3000
     }
