@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudflank-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudflank-web
+  template:
+    metadata:
+      labels:
+        app: cloudflank-web
+    spec:
+      containers:
+      - name: cloudflank
+        image: hub.hitosea.com/cloudflank-web/cloudflank-website:1.0.0-test
+        ports:
+        - containerPort: 3000
+          name: http
+        imagePullPolicy: IfNotPresent
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caddy
+  labels:
+    app: caddy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caddy
+  template:
+    metadata:
+      labels:
+        app: caddy
+    spec:
+      containers:
+      - name: caddy
+        image: caddy:2.6.2-alpine
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        volumeMounts:
+        - name: caddyfile
+          mountPath: /etc/caddy/Caddyfile
+          subPath: Caddyfile
+      volumes:
+      - name: caddyfile
+        configMap:
+          name: cloudflank-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 3000
+    name: http
+  selector:
+    app: cloudflank-web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy
+  labels:
+    app: caddy
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: https
+  - port: 443
+    targetPort: 443
+    protocol: UDP
+    name: https-udp
+  selector:
+    app: caddy
