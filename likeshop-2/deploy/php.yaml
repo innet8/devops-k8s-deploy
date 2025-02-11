@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: php
+  template:
+    metadata:
+      labels:
+        app: php
+    spec:
+      containers:
+      - name: php
+        image: hub.hitosea.com/likeshop/php-app:v0.0.1
+        ports:
+        - containerPort: 9000
+        env:
+        - name: DB_HOST
+          value: mysql
+        - name: DB_DATABASE
+          value: shop
+        - name: DB_USERNAME
+          value: root
+        - name: DB_PASSWORD
+          value: qwe@123..
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: php
+spec:
+  ports:
+  - port: 9000
+    targetPort: 9000
+  selector:
+    app: php

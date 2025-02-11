@@ -1,0 +1,36 @@
+# 使用 PHP 8.0 的 FPM 镜像作为基础镜像
+FROM php:8.0-fpm
+
+# 设置工作目录
+WORKDIR /var/www/html
+
+# 复制本地的 server/public 目录到镜像中的 /var/www/html
+COPY server/ /var/www/html/server/
+COPY admin/ /var/www/html/admin/
+COPY uniapp/ /var/www/html/uniapp/
+
+RUN chown -R www-data:www-data /var/www/html
+# 安装必要的 PHP 扩展
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    libxml2-dev \
+    libssl-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install pdo pdo_mysql \
+    && docker-php-ext-install dom \
+    && docker-php-ext-install zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis
+
+# 启用 allow_url_fopen
+RUN echo "allow_url_fopen = On" >> /usr/local/etc/php/conf.d/99-custom.ini
+
+# 暴露容器的 9000 端口
+EXPOSE 9000
+USER www-data
+# 启动 PHP-FPM
+CMD ["php-fpm"]

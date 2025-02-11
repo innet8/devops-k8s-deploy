@@ -1,0 +1,8 @@
+FROM nginx:latest
+COPY server/ /var/www/html/server/
+COPY admin/ /var/www/html/admin/
+COPY uniapp/ /var/www/html/uniapp/
+RUN chown -R nginx:nginx /var/www/html
+
+EXPOSE 80
+EXPOSE 443
