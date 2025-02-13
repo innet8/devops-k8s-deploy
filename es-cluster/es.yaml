@@ -4,6 +4,16 @@ metadata:
   name: es-cluster
 spec:
   version: 8.17.1
+  # http:
+  #   service:
+  #     spec:
+  #       type: NodePort
+  #       ports:
+  #         - name: https
+  #           nodePort: 31148
+  #           port: 9200
+  #           protocol: TCP
+  #           targetPort: 9200
   nodeSets:
     - name: master
       count: 2

@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: line-bot-webhook
+  labels:
+    app: line-bot-webhook
+spec:
+  replicas: 3  
+  selector:
+    matchLabels:
+      app: line-bot-webhook
+  template:
+    metadata:
+      labels:
+        app: line-bot-webhook
+    spec:
+      containers:
+      - name: line-bot-webhook
+        image: rubyroes/line-bot-webhook:latest 
+        ports:
+        - containerPort: 5000  # 
+        env:  # 设置环境变量（可选）
+        - name: FLASK_ENV
+          value: ${ENV}
+        - name: LINE_CHANNEL_SECRET
+          value: ${LINE_CHANNEL_SECRET}
+        - name: LINE_CHANNEL_ACCESS_TOKEN
+          value: ${LINE_CHANNEL_ACCESS_TOKEN}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: line-bot-webhook
+spec:
+  selector:
+    app: line-bot-webhook
+  ports:
+  - name: http
+    port: 80  # 对外暴露的端口
+    targetPort: 5000  # 容器内部的端口
+    protocol: TCP
+  type: ClusterIP  
