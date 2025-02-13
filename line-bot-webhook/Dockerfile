@@ -9,4 +9,4 @@ COPY . .
 
 RUN pip install uwsgi
 
-CMD ["uwsgi", "--http", ":5000", "--wsgi-file", "app.py", "--callable", "app", "--processes", "3", "--threads", "2"]
+CMD ["uwsgi", "--ini", "/app/uwsgi.ini"]
