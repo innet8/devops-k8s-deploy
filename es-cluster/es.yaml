@@ -1,0 +1,37 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: es-cluster
+spec:
+  version: 8.17.1
+  nodeSets:
+    - name: master
+      count: 2
+      config:
+        node.roles: ["master"]
+        node.store.allow_mmap: false
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            storageClassName: csi-cephfs-sc
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 30Gi
+    - name: data
+      count: 3
+      config:
+        node.roles: ["data"]
+        node.store.allow_mmap: false
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            storageClassName: csi-cephfs-sc
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 100Gi
