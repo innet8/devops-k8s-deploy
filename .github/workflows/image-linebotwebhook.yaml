@@ -7,11 +7,7 @@ name: Build line-webhook image
 
 on:
   workflow_dispatch:
-    inputs:
-      branch: 
-        description: 'branch (e.g., release)'
-        required: true
-        default: 'master'
+
 
 
 env:
