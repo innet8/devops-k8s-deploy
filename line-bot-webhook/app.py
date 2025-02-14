@@ -200,7 +200,7 @@ def pushMessage():
                     },
                     {
                         "type": "text",
-                        "text": body.get("总销售额"),
+                        "text": body.get("总销售额"),+""
                         "size": "sm",
                         "color": "#111111",
                         "align": "end"
@@ -219,7 +219,7 @@ def pushMessage():
                     },
                     {
                         "type": "text",
-                        "text": body.get("实收金额"),
+                        "text": body.get("实收金额")+"",
                         "size": "sm",
                         "color": "#111111",
                         "align": "end"
@@ -238,7 +238,7 @@ def pushMessage():
                     },
                     {
                         "type": "text",
-                        "text": body.get("营业收入"),
+                        "text": body.get("营业收入")+"",
                         "size": "sm",
                         "color": "#111111",
                         "align": "end"
@@ -257,7 +257,7 @@ def pushMessage():
                     },
                     {
                         "type": "text",
-                        "text": body.get("总订单数"),
+                        "text": body.get("总订单数")+"",
                         "size": "sm",
                         "color": "#111111",
                         "align": "end"
