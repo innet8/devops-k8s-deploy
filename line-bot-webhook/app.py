@@ -19,6 +19,7 @@ import os
 import sys
 import logging
 import tempfile
+import json
 from argparse import ArgumentParser
 
 from flask import Flask, request, abort, send_from_directory
@@ -155,6 +156,29 @@ def callback():
 
     return 'OK'
 
+@app.route("/push", methods=['POST'])
+def pushMessage():
+
+    # get request body as text
+    body = request.get_json()
+    app.logger.info("Request body: " + body)
+    user_id = body.get("user_id")
+    # handle webhook body
+    try:
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            line_bot_api.push_message(
+                PushMessageRequest(
+                    to=user_id,
+                    messages=[TextMessage(text=json.dumps(body.get("data")))]
+                )
+            )
+    except ApiException as e:
+        app.logger.warn("Got exception from LINE Messaging API: %s\n" % e.body)
+    except InvalidSignatureError:
+        abort(400)
+
+    return 'OK'
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_text_message(event):
