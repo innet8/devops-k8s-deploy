@@ -159,6 +159,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_text_message(event):
     text = event.message.text
+    if isinstance(event.source, UserSource):
+        app.logger.info("user_id: " + event.source.user_id)
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         if text == 'profile':
