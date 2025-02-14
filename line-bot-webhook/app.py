@@ -158,23 +158,154 @@ def callback():
 
 @app.route("/push", methods=['POST'])
 def pushMessage():
-
     # get request body as text
     body = request.form.get("res")
     user_id = request.form.get("user_id")
     shops = request.form.get("shops")
-    # app.logger.info("Request body: " + body)
-    # user_id = body.get("user_id")
-    msg = shops+body
-    app.logger.info(user_id + " Request body: " + msg)
+    app.logger.info(user_id + " Request body: " + body)
     # handle webhook body
+    body = json.loads(body)
+    bubble = {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+            {
+                "type": "text",
+                "text": "神戸牛らーめん麓の宮",
+                "weight": "bold",
+                "size": "xl",
+                "margin": "md"
+            },
+            {
+                "type": "separator",
+                "margin": "xl"
+            },
+            {
+                "type": "box",
+                "layout": "vertical",
+                "spacing": "sm",
+                "contents": [
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "margin": "xxl",
+                    "contents": [
+                    {
+                        "type": "text",
+                        "text": "总销售额：",
+                        "size": "sm",
+                        "color": "#555555"
+                    },
+                    {
+                        "type": "text",
+                        "text": body.get("总销售额"),
+                        "size": "sm",
+                        "color": "#111111",
+                        "align": "end"
+                    }
+                    ]
+                },
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                    {
+                        "type": "text",
+                        "text": "实收金额：",
+                        "size": "sm",
+                        "color": "#555555"
+                    },
+                    {
+                        "type": "text",
+                        "text": body.get("实收金额"),
+                        "size": "sm",
+                        "color": "#111111",
+                        "align": "end"
+                    }
+                    ]
+                },
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                    {
+                        "type": "text",
+                        "text": "营业收入：",
+                        "size": "sm",
+                        "color": "#555555"
+                    },
+                    {
+                        "type": "text",
+                        "text": body.get("营业收入"),
+                        "size": "sm",
+                        "color": "#111111",
+                        "align": "end"
+                    }
+                    ]
+                },
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "contents": [
+                    {
+                        "type": "text",
+                        "size": "sm",
+                        "color": "#555555",
+                        "text": "总订单数："
+                    },
+                    {
+                        "type": "text",
+                        "text": body.get("总订单数"),
+                        "size": "sm",
+                        "color": "#111111",
+                        "align": "end"
+                    }
+                    ]
+                }
+                ]
+            },
+            {
+                "type": "separator",
+                "margin": "xxl"
+            },
+            {
+                "type": "box",
+                "layout": "horizontal",
+                "margin": "md",
+                "contents": [
+                {
+                    "type": "text",
+                    "text": "时间：",
+                    "size": "xs",
+                    "color": "#aaaaaa",
+                    "flex": 0
+                },
+                {
+                    "type": "text",
+                    "text": body.get("时间范围"),
+                    "color": "#aaaaaa",
+                    "size": "xs",
+                    "align": "end"
+                }
+                ]
+            }
+            ]
+        },
+        "styles": {
+            "footer": {
+            "separator": True
+            }
+        }
+        }
     try:
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             line_bot_api.push_message(
                 PushMessageRequest(
                     to=user_id,
-                    messages=[TextMessage(text=msg)]
+                    messages=[FlexMessage(alt_text=shops, contents=FlexContainer.from_json(json.dumps(bubble)))]
                 )
             )
     except ApiException as e:
