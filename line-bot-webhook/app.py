@@ -160,9 +160,13 @@ def callback():
 def pushMessage():
 
     # get request body as text
-    body = request.get_json()
-    app.logger.info("Request body: " + body)
-    user_id = body.get("user_id")
+    body = request.form.get("res")
+    user_id = request.form.get("user_id")
+    shops = request.form.get("shops")
+    # app.logger.info("Request body: " + body)
+    # user_id = body.get("user_id")
+    msg = shops+body
+    app.logger.info(user_id + " Request body: " + msg)
     # handle webhook body
     try:
         with ApiClient(configuration) as api_client:
@@ -170,7 +174,7 @@ def pushMessage():
             line_bot_api.push_message(
                 PushMessageRequest(
                     to=user_id,
-                    messages=[TextMessage(text=json.dumps(body.get("data")))]
+                    messages=[TextMessage(text=msg)]
                 )
             )
     except ApiException as e:
