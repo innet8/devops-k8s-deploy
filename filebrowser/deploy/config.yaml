@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebrowser-config
+  namespace: filebrowser
+data:
+  config.json: |
+    {
+      "address": "0.0.0.0",
+      "port": 80,
+      "database": "/filebrowser/database.db",
+      "log": "stdout",
+      "locale": "zh-cn",
+      "username": "admin",
+      "password": "admin", 
+      "root": "/filebrowser/srv",
+      "baseURL": ""
+    }

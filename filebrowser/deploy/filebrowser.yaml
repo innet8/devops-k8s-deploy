@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filebrowser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: filebrowser
+  template:
+    metadata:
+      labels:
+        app: filebrowser
+    spec:
+      containers:
+      - name: filebrowser
+        image: filebrowser/filebrowser:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: filebrowser_config
+          mountPath: /etc/config.json
+          subPath: config.json
+        - name: storage-volume
+          mountPath: /filebrowser
+      volumes:
+      - name: filebrowser_config
+        configMap:
+          name: filebrowser-config
+      - name: storage-volume
+        persistentVolumeClaim:
+          claimName: filebrowser-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: filebrowser-service
+spec:
+  selector:
+    app: filebrowser
+  ports:
+    - port: 80
+      targetPort: 8080
