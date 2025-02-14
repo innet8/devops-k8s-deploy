@@ -200,7 +200,7 @@ def pushMessage():
                     },
                     {
                         "type": "text",
-                        "text": body.get("总销售额"),+""
+                        "text": body.get("总销售额")+"",
                         "size": "sm",
                         "color": "#111111",
                         "align": "end"
