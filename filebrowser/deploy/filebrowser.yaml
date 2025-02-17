@@ -18,13 +18,13 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: filebrowser_config
+        - name: config
           mountPath: /etc/config.json
           subPath: config.json
         - name: storage-volume
           mountPath: /filebrowser
       volumes:
-      - name: filebrowser_config
+      - name: config
         configMap:
           name: filebrowser-config
       - name: storage-volume
