@@ -8,12 +8,12 @@ data:
     {
       "address": "0.0.0.0",
       "port": 80,
-      "database": "/filebrowser/database.db",
+      "database": "/data/database.db",
       "log": "stdout",
       "locale": "zh-cn",
       "username": "admin",
       "password": "admin", 
-      "root": "/filebrowser/srv",
+      "root": "/data/srv",
       "baseURL": ""
     }
   default.conf: |

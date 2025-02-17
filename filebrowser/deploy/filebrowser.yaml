@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: filebrowser
-        image: filebrowser/filebrowser:latest
+        image: filebrowser/filebrowser:v2.32.0-s6
         ports:
         - containerPort: 80
         volumeMounts:
@@ -22,7 +22,8 @@ spec:
           mountPath: /etc/config.json
           subPath: config.json
         - name: storage-volume
-          mountPath: /filebrowser
+          mountPath: /data
+
       volumes:
       - name: config
         configMap:
