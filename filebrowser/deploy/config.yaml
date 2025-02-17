@@ -16,3 +16,24 @@ data:
       "root": "/filebrowser/srv",
       "baseURL": ""
     }
+  default.conf: |
+    server {
+        listen 80;
+
+        location /filebrowser {
+            proxy_set_header Host $http_host;
+            proxy_set_header Scheme $scheme;
+            proxy_set_header Server-Name $server_name;
+            proxy_set_header Server-Addr $server_addr;
+            proxy_set_header Server-Port $server_port;
+            proxy_pass http://filebrowser-service;
+        }
+
+        location ~* ^/([^/]+)/?$ {
+            set $folder $1;
+            root /var/www/$folder;
+            index index.html;
+            try_files $uri /index.html;
+        }
+
+    }
