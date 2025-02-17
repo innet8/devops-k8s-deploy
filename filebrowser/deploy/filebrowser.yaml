@@ -4,6 +4,8 @@ metadata:
   name: filebrowser
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: filebrowser
@@ -18,11 +20,15 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: config
-          mountPath: /etc/config.json
-          subPath: config.json
-        - name: storage-volume
-          mountPath: /data
+          - name: config
+            mountPath: /config/settings.json
+            subPath: config.json
+          - name: storage-volume
+            mountPath: /database
+            subPath: database
+          - name: storage-volume
+            mountPath: /srv
+            subPath: srv
 
       volumes:
       - name: config
