@@ -21,13 +21,11 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /etc/nginx/conf.d/default.conf
-          subPath: dootask.conf  # 挂载 cloudflare.conf
-
+          subPath: cloudflank.conf  # 挂载 cloudflare.conf
       volumes:
       - name: config
         configMap:
           name: nginx-config
-        imagePullPolicy: IfNotPresent
       imagePullSecrets:
       - name: regcred
 

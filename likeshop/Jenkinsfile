@@ -39,11 +39,14 @@ done'''
 
   }
   environment {
-    BRANCH = 'master'
-    GIT_TOKEN = ''
-    ns = ''
+    BRANCH = "$params.BRANCH"
+    GIT_TOKEN = "$params.GIT_TOKEN"
+    NS = "$params.NS"
   }
   parameters {
-    string(name: 'TAG_NAME', defaultValue: '', description: '')
+    string(name: 'BRANCH', defaultValue: '', description: '')
+    string(name: 'GIT_TOKEN', defaultValue: '', description: '')
+    string(name: 'NS', defaultValue: '', description: '')
   }
+
 }
