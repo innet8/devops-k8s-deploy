@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: hitosea
-        image: hub.hitosea.com/official-website/hitosea-web:hicms-5df0c44
+        image: hub.hitosea.com/official-website/hitosea-web:hicms-
         command:
           - node
         args:
