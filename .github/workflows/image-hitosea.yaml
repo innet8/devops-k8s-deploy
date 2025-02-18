@@ -49,6 +49,7 @@ jobs:
         id: get_commit_id
         run: |
           cp ${{ env.PROJECT }}/Dockerfile ${{ env.SRC_PATH }}/Dockerfile
+          cp ${{ env.PROJECT }}/.env ${{ env.SRC_PATH }}/.env 
           cd ${{ env.SRC_PATH }}
           echo "COMMIT_ID=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
