@@ -47,11 +47,16 @@ jobs:
           ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
       - name: Copy dockerfile
+        id: get_commit_id
         run: |
           cp ${{ env.PROJECT }}/Dockerfile.* ${{ env.PROJECT_PATH }}/
           cd ${{ env.PROJECT_PATH }}
-          ls 
-          echo "COMMIT_ID=$(git log -1 --pretty=format:%h -- .)" >> $GITHUB_OUTPUT
+          drawio_image_tag=$(grep 'image:' docker-compose.yml | grep 'drawio' | awk -F ':' '{gsub(/"/, "", $3); print $3}')
+          export_image_tag=$(grep 'image:' docker-compose.yml | grep 'export-server' | awk -F ':' '{gsub(/"/, "", $3); print $3}')
+          office_image_tag=$(grep 'image:' docker-compose.yml | grep 'office' | awk -F ':' '{gsub(/"/, "", $3); print $3}')
+          echo "drawio_tag=$drawio_image_tag" >> $GITHUB_OUTPUT
+          echo "export_tag=$export_image_tag" >> $GITHUB_OUTPUT
+          echo "office_tag=$office_image_tag" >> $GITHUB_OUTPUT
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -79,13 +84,13 @@ jobs:
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
+      - name: Extract DRAWIO Docker metadata
         id: meta
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_DRAWIO }}
           tags: |
-            type=raw,value=v0.0.1,prefix=,suffix=,format=short  
+            type=raw,value=${{ steps.get_commit_id.outputs.drawio_tag }},prefix=,suffix=,format=short  
             
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -101,13 +106,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Extract Docker metadata
+      - name: Extract EXPORT Docker metadata
         id: meta1
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_EXPORT }}
           tags: |
-            type=raw,value=v0.0.1,prefix=,suffix=,format=short  
+            type=raw,value=${{ steps.get_commit_id.outputs.export_tag }},prefix=,suffix=,format=short  
             
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -123,13 +128,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Extract Docker metadata
+      - name: Extract OFFICE Docker metadata
         id: meta2
         uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_OFFICE }}
           tags: |
-            type=raw,value=v0.0.1,prefix=,suffix=,format=short  
+            type=raw,value=${{ steps.get_commit_id.outputs.office_tag }},prefix=,suffix=,format=short  
             
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
@@ -144,3 +149,27 @@ jobs:
           labels: ${{ steps.meta2.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Update deploy.yaml
+        run: |
+          EXPORT_TAG=${{ steps.get_commit_id.outputs.export_tag }}
+          echo "IMAGE_TAG=$EXPORT_TAG"
+          sed -i "s|export-server:.*|export-server: $EXPORT_TAG|" ${{ env.PROJECT }}/deploy/dootask-drawio.yaml
+          DRAWIO_TAG=${{ steps.get_commit_id.outputs.drawio_tag }}
+          echo "IMAGE_TAG=$DRAWIO_TAG"
+          sed -i "s|drawio:.*|drawio: $DRAWIO_TAG|" ${{ env.PROJECT }}/deploy/dootask-drawio.yaml
+
+          OFFICE_TAG=${{ steps.get_commit_id.outputs.office_tag }}
+          echo "IMAGE_TAG=$OFFICE_TAG"
+          sed -i "s|office:.*|office: $OFFICE_TAG|" ${{ env.PROJECT }}/deploy/dootask-office.yaml
+
+      - name: Commit and push changes 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用默认的 GITHUB_TOKEN
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add ${{ env.PROJECT }}/deploy/dootask-drawio.yaml
+          git add ${{ env.PROJECT }}/deploy/dootask-office.yaml
+          git commit -m "Automated update of deploy with new image tag"
+          git push origin HEAD:main
