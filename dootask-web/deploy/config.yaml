@@ -1,21 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: nginx-config
+  name: dootask-nginx-config
 data:
   dootask.conf: |
     server {
         listen 80;
-        listen 443 ssl;
-        client_body_buffer_size 200m;
-        server_name www.dootask.com dootask.com;
-        ssl_certificate /etc/nginx/conf.d/fullchain.cer;
-        ssl_certificate_key /etc/nginx/conf.d/cert.key;
-        ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
-        ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
-        ssl_prefer_server_ciphers on;
-        ssl_session_cache shared:SSL:10m;
-        ssl_session_timeout 10m;
+
         root /var/www/public;
 
         client_header_buffer_size 2k;
