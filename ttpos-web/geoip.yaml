@@ -23,7 +23,7 @@ kind: Service
 metadata:
   name: ttpos-geoip
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: 9797
     targetPort: 9797

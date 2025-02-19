@@ -38,12 +38,15 @@ done'''
     }
 
   }
+
   environment {
-    BRANCH = 'saas-v1.1.1'
-    GIT_TOKEN = ''
-    version = 'latest'
+    BRANCH = "$params.BRANCH"
+    GIT_TOKEN = "$params.GIT_TOKEN"
+    NS = "$params.VERSION"
   }
   parameters {
-    string(name: 'TAG_NAME', defaultValue: '', description: '')
+    string(name: 'BRANCH', defaultValue: 'saas-v1.1.1', description: '')
+    string(name: 'GIT_TOKEN', defaultValue: '', description: '')
+    string(name: 'VERSION', defaultValue: 'latest', description: '')
   }
 }

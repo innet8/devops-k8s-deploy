@@ -45,7 +45,7 @@ kind: Service
 metadata:
   name: ttpos-dl-proxy
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: 9890
     targetPort: 9890
