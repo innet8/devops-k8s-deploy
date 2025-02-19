@@ -5,41 +5,74 @@ metadata:
 data:
   dootask.conf: |
     server {
-    listen 80;
+        listen 80;
+        listen 443 ssl;
+        client_body_buffer_size 200m;
+        server_name www.dootask.com dootask.com;
+        ssl_certificate /etc/nginx/conf.d/fullchain.cer;
+        ssl_certificate_key /etc/nginx/conf.d/cert.key;
+        ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
+        ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+        ssl_prefer_server_ciphers on;
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+        root /var/www/public;
 
-    root /var/www/public;
+        client_header_buffer_size 2k;
+        large_client_header_buffers 4 8k;
 
-    client_max_body_size 1024M;
+        client_max_body_size  1024M;
 
-    autoindex off;
-    index index.html index.htm index.php;
+        autoindex off;
+        index index.html index.htm index.php;
 
-    charset utf-8;
+        charset utf-8;
 
-    # 将 /site/* 的请求进行 301 重定向到根路径
-    location /site/ {
-    rewrite ^/site/(.*)$ /$1 permanent; # 使用永久重定向
-    }
+        # 将 /site/* 的请求进行 301 重定向到根路径
+        location /site/ {
+            rewrite ^/site/(.*)$ /$1 permanent;  # 使用永久重定向
+        }
 
-    # 将所有 /uploads/* 请求重定向到新域名的相同路径
-    location /uploads/ {
-    rewrite ^/uploads/(.*)$ https://demo1.dootask.com/uploads/$1 permanent; # 永久重定向
-    }
+        # 将所有 /uploads/* 请求转发到新域名
+        location /uploads {
+            proxy_pass https://demo1.dootask.com/uploads;
+        }
 
-    # 将 /manage/dashboard 重定向到新域名
-    location /manage/dashboard {
-    return 301 https://demo1.dootask.com/manage/dashboard;
-    }
+        location /desktop {
+            proxy_pass https://demo1.dootask.com/desktop;
+        }
 
-    # 将 /login 重定向到新域名
-    location /login {
-    return 301 https://demo1.dootask.com/login;
-    }
+        # 匹配 /help 路由，指向帮助文档的文件夹
+        location /help {
+            try_files $uri $uri.html $uri/ =404;
+            location ~* ^/assets/ {
+                expires 1y;
+                add_header Cache-Control "public, immutable";
+            }
+        }
 
-    # 错误页面配置
-    error_page 404 /404.html; # 404 错误时显示 /404.html 页面
-    location = /404.html {
-    root /var/www/public; # 错误页面的位置
-    internal; # 只能由 Nginx 内部访问，防止直接访问
-    }
+        # 将 /manage/dashboard 重定向到新域名
+        location /manage/dashboard {
+            return 301 https://demo1.dootask.com/manage/dashboard;
+        }
+
+        # 将 /login 重定向到新域名
+        location /login {
+            return 301 https://demo1.dootask.com/login;
+        }
+
+        location /docs {
+            proxy_pass https://demo1.dootask.com/docs;
+        }
+
+        location /api {
+            proxy_pass https://demo1.dootask.com/api;
+        }
+
+        # 错误页面配置
+        error_page 404 /404.html;  # 404 错误时显示 /404.html 页面
+        location = /404.html {
+            root /var/www/public;  # 错误页面的位置
+            internal;  # 只能由 Nginx 内部访问，防止直接访问
+        }
     }
