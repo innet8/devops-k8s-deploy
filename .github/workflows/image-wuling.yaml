@@ -46,7 +46,8 @@ jobs:
           token: ${{ secrets.OTHER_REPO_TOKEN }} # 使用存储在 secrets 中的 token
           ref: ${{ github.event.inputs.branch }} # 可选：指定要检出的分支或 tag，默认为 default branch
 
-      - name: Copy Dockerfile to B repository
+      - name: Copy Dockerfile to repository
+        id: get_commit_id
         run: |
           cp ${{ env.PROJECT }}/Dockerfile ${{ env.SRC_PATH }}/Dockerfile
           cd ${{ env.SRC_PATH }}
@@ -84,7 +85,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ steps.config.outputs.COMMIT_ID }},prefix=${{ github.event.inputs.branch }}-,suffix=,format=short  
+            type=raw,value=${{ steps.get_commit_id.outputs.COMMIT_ID }},prefix=${{ github.event.inputs.branch }}-,suffix=,format=short  
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image

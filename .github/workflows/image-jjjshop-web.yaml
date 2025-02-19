@@ -124,6 +124,7 @@ jobs:
           node-version: 20
 
       - name: Copy dockerfile
+        id: get_commit_id
         run: |
           cp ${{ env.PROJECT }}/Dockerfile.web ${{ env.jjjshop_path }}/Dockerfile
           cd ${{ env.jjjshop_path }}
@@ -219,7 +220,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=${{ steps.config.outputs.COMMIT_ID }},prefix=${{ github.event.inputs.bgbranch }}-,suffix=,format=short  
+            type=raw,value=${{ steps.get_commit_id.outputs.COMMIT_ID }},prefix=${{ github.event.inputs.bgbranch }}-,suffix=,format=short  
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
