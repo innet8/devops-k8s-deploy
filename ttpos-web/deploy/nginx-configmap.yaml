@@ -131,6 +131,4 @@ data:
             proxy_set_header Connection $connection_upgrade;
             proxy_pass http://ttpos-web:3000;
         }
-        access_log  /www/wwwlogs/ttpos.com.log;
-        error_log  /www/wwwlogs/ttpos.com.error.log;
     }

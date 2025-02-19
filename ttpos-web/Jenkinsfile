@@ -1,0 +1,52 @@
+pipeline {
+  agent {
+    node {
+      label 'base'
+    }
+
+  }
+  stages {
+    stage('clone code') {
+      steps {
+        container('nodejs') {
+          git(url: 'https://github.com/innet8/devops-k8s-deploy.git', credentialsId: '<no value>', branch: 'main', changelog: true, poll: false)
+        }
+
+      }
+    }
+
+    stage('deploy to dev') {
+      agent none
+      steps {
+        container('base') {
+          input(id: 'deploy-to-dev', message: 'deploy to dev?')
+          withCredentials([kubeconfigContent(credentialsId: 'k8s', variable: 'KUBECONFIG_CONFIG')]) {
+            sh 'mkdir -p ~/.kube/'
+            sh 'echo "$KUBECONFIG_CONFIG" > ~/.kube/config'
+            sh '''for file in likeshop/deploy/*; do  
+if [ "$file" == "likeshop/deploy/init-job.yaml" ]; then 
+    envsubst < $file| kubectl -n $ns apply -f - ;
+else
+    kubectl -n $ns apply -f $file
+fi
+done'''
+          }
+
+        }
+
+      }
+    }
+
+  }
+  environment {
+    BRANCH = "$params.BRANCH"
+    GIT_TOKEN = "$params.GIT_TOKEN"
+    NS = "$params.NS"
+  }
+  parameters {
+    string(name: 'BRANCH', defaultValue: 'master', description: '')
+    string(name: 'GIT_TOKEN', defaultValue: '', description: '')
+    string(name: 'NS', defaultValue: 'likeshop', description: '')
+  }
+
+}

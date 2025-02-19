@@ -26,7 +26,7 @@ kind: Service
 metadata:
   name: web-nginx-speedbox-web
 spec:
-  type: NodePort  # 可以根据需要选择 ClusterIP 或 LoadBalancer
+  type: ClusterIP  # 可以根据需要选择 ClusterIP 或 LoadBalancer
   ports:
   - port: 80
     targetPort: 80
