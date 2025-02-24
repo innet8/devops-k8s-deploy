@@ -88,11 +88,7 @@ spec:
             cp docker/crontab/crontab.conf /app/supervisor/conf.d/
             cp docker/php/php.conf /app/supervisor/conf.d/
             cp docker/php/php.ini /app/php/
-            
-            # 设置权限
-            # chown -R 1000:1000 /app/
-            # chmod -R 775 /app/dootask/storage
-            
+
             echo "Preparation completed successfully" >/app/success
         env:
         - name: COMPOSER_ALLOW_SUPERUSER

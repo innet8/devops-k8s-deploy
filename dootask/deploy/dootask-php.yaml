@@ -77,6 +77,16 @@ spec:
           subPath: .env
         - name: tmpfs-volume
           mountPath: /dev/shm 
+      - name: php-logs
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          tail -F /var/www/storage/logs/*.log 2>/dev/null || true
+        volumeMounts:
+        - name: app-data
+          mountPath: /var/www
+          subPath: dootask
       volumes:
       - name: app-data
         persistentVolumeClaim:
