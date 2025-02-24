@@ -98,18 +98,3 @@ spec:
     name: http
   selector:
     app: dootask-php
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: dootask-app-pvc
-spec:
-  accessModes:
-    - ReadWriteMany
-  storageClassName: csi-cephfs-sc
-  resources:
-    requests:
-      storage: 20Gi
-
----

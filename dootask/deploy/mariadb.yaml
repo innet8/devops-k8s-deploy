@@ -80,15 +80,3 @@ spec:
   selector:
     app: dootask-mariadb
 
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-data-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: hitosea-rbd-sc
-  resources:
-    requests:
-      storage: 30Gi
