@@ -75,6 +75,8 @@ spec:
         - name: env-config
           mountPath: /var/www/.env
           subPath: .env
+        - name: tmpfs-volume
+          mountPath: /dev/shm 
       volumes:
       - name: app-data
         persistentVolumeClaim:
@@ -82,6 +84,9 @@ spec:
       - name: env-config
         configMap:
           name: dootask-config
+      - name: tmpfs-volume
+        emptyDir:
+          sizeLimit: 1024Mi
 ---
 apiVersion: v1
 kind: Service
