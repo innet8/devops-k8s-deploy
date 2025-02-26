@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dootask-repasswd-job
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      containers:
+      - name: repassword
+        image: mysql:8.0
+        command: ['sh', '-c']
+        args:
+          - |
+            echo "Waiting for MySQL to be ready..."
+            until [ ! -z "$(mysql -h $DB_HOST -u$DB_USERNAME -p$DB_PASSWORD -e 'select * from dootask.pre_users where userid = 1;')" ] ; do
+              echo "MySQL is unavailable - sleeping"
+              sleep 5
+            done
+            new_password=$DB_PASSWORD
+
+            new_encrypt=$(date +%s%N | md5sum | awk '{print $1}' | cut -c 1-6)
+            if [ -z "$new_password" ]; then
+                new_password=$(date +%s%N | md5sum | awk '{print $1}' | cut -c 1-16)
+            fi
+            md5_password=$(echo -n `echo -n $new_password | md5sum | awk '{print $1}'`$new_encrypt | md5sum | awk '{print $1}')
+
+            content=$(echo "select \`email\` from ${DB_PREFIX}users where \`userid\`=1;" | mysql -h $DB_HOST -u$DB_USERNAME -p$DB_PASSWORD $DB_DATABASE)
+            account=$(echo "$content" | sed -n '2p')
+
+            if [ -z "$account" ]; then
+                echo "错误：账号不存在！"
+                exit 1
+            fi
+
+            mysql -h $DB_HOST -u$DB_USERNAME -p$DB_PASSWORD $DB_DATABASE <<EOF
+            update ${DB_PREFIX}users set \`encrypt\`='${new_encrypt}',\`password\`='${md5_password}' where \`userid\`=1;
+            EOF
+
+            echo "账号: admin@dootask.com"
+            echo "密码: ${new_password}"
+        env:
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_HOST
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PASSWORD
+        - name: DB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_DATABASE
+        - name: DB_PREFIX
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: DB_PREFIX
+      restartPolicy: OnFailure
