@@ -71,6 +71,8 @@ spec:
             else
                 cd dootask
                 LOCAL_COMMIT=$(git rev-parse HEAD)
+                git fetch --all
+                git reset --hard origin/$(git branch | sed -n -e 's/^\* \(.*\)/\1/p')
                 git pull
                 REMOTE_COMMIT=$(git rev-parse HEAD)
                 if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
