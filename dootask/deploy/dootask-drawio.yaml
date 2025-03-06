@@ -16,9 +16,6 @@ spec:
       - name: drawio-webapp
         image: hub.hitosea.com/dootask/drawio:v0.0.1
 
-      - name: drawio-export
-        image: hub.hitosea.com/dootask/export-server:v0.0.1
-
 ---
 apiVersion: v1
 kind: Service
