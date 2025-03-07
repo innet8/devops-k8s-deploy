@@ -49,20 +49,15 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
-            #[ -f "/app/success" ] && exit 0
             cd /app
-            
             if [ ! -d "/app/dootask/.git" ]; then
-                git clone -b pro https://github.com/kuaifan/dootask.git 
+                git clone -b pro --depth=1 https://github.com/kuaifan/dootask.git 
                 cd dootask
-                git submodule update --init --recursive
-                cp .env.docker .env
                 if [ ! -f "vendor/autoload.php" ]; then
                     composer config repo.packagist composer https://packagist.phpcomposer.com
                     composer install
                     composer config --unset repos.packagist
                 fi
-                [ -z "$(cat .env | grep "APP_KEY=" | awk -F '=' '{print $2}' | tr -d '\r\n' )" ] && php artisan key:generate
                 php artisan migrate --seed
                 if [ "$?" != "0" ]; then
                   sleep 10
@@ -70,15 +65,9 @@ spec:
                 fi
             else
                 cd dootask
-                LOCAL_COMMIT=$(git rev-parse HEAD)
                 git fetch --all
                 git reset --hard origin/$(git branch | sed -n -e 's/^\* \(.*\)/\1/p')
                 git pull
-                REMOTE_COMMIT=$(git rev-parse HEAD)
-                if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
-                    echo "Git commit changed, updating submodules..."
-                    git submodule update --init --recursive
-                fi
                 composer update
                 php artisan migrate
             fi
@@ -86,7 +75,6 @@ spec:
             mkdir -p /app/supervisor/conf.d
             mkdir -p /app/php
             
-            # 复制PHP相关文件
             cp docker/crontab/crontab.conf /app/supervisor/conf.d/
             cp docker/php/php.conf /app/supervisor/conf.d/
             cp docker/php/php.ini /app/php/
