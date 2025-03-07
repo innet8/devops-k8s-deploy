@@ -1,0 +1,13 @@
+deploy:
+  accessKey:
+    enabled: true
+  ack: false
+  ecs: false
+  regionID: cn-hongkong
+csi:
+  disk:
+    enabled: false
+  oss:
+    enabled: false
+defaultStorageClass:
+  enabled: false
