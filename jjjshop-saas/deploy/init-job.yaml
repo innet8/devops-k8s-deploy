@@ -54,8 +54,9 @@ spec:
                 export COMPOSER_ALLOW_SUPERUSER=1
                 composer install --ignore-platform-reqs
             else
-                cd jjjshop/jjj_food_chain/
+                cd jjjshop/
                 git pull
+                cd jjj_food_chain/
                 export COMPOSER_ALLOW_SUPERUSER=1
                 composer update --ignore-platform-reqs
             fi
@@ -110,14 +111,10 @@ spec:
         volumeMounts:
         - name: jjjshop-php-data
           mountPath: /var/www
-        - name: env
-          mountPath: /var/www/.env
-          subPath: .env
+
       volumes:
       - name: jjjshop-php-data
         persistentVolumeClaim:
           claimName: jjjshop-php-pvc
-      - name: env
-        configMap:
-          name: env-config
+
       restartPolicy: OnFailure
