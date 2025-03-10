@@ -42,11 +42,13 @@ done'''
   environment {
     BRANCH = "$params.BRANCH"
     GIT_TOKEN = "$params.GIT_TOKEN"
-    NS = "$params.VERSION"
+    VERSION = "$params.VERSION"
+    NS = "$params.NS"
   }
   parameters {
     string(name: 'BRANCH', defaultValue: 'saas-v1.1.1', description: '')
     string(name: 'GIT_TOKEN', defaultValue: '', description: '')
     string(name: 'VERSION', defaultValue: 'latest', description: '')
+    string(name: 'NS', defaultValue: 'jjjshop-demo', description: '')
   }
 }
