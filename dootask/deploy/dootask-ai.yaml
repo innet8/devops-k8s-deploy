@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: ai
-        image: kuaifan/dootask-ai:0.2.6
+        image: kuaifan/dootask-ai:0.3.5
         env:
         - name: REDIS_HOST
           valueFrom:

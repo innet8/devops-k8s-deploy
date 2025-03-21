@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: fileview
-        image: kuaifan/fileview:4.2.0-SNAPSHOT-RC25
+        image: kuaifan/fileview:4.4.0-3
         env:
         - name: KK_CONTEXT_PATH
           value: "/fileview"
