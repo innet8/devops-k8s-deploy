@@ -50,7 +50,7 @@ else
     kubectl -n $NS apply -f $file
 fi
 done'''
-            sh 'kubectl -n default get secret dootask.top -o yaml| sed '/namespace/d' | kubectl -n $NS apply -f  -'
+            sh 'kubectl -n default get secret dootask.top -o yaml| sed "/namespace:/d;/uid:/d;/resourceVersion:/d" | kubectl -n $NS apply -f  -'
           }
 
         }

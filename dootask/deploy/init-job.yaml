@@ -58,10 +58,10 @@ spec:
                     composer install
                     composer config --unset repos.packagist
                 fi
-                php artisan migrate --seed
+                php artisan migrate --seed --force
                 if [ "$?" != "0" ]; then
                   sleep 10
-                  php artisan migrate --seed
+                  php artisan migrate --seed --force
                 fi
             else
                 cd dootask
@@ -69,7 +69,7 @@ spec:
                 git reset --hard origin/$(git branch | sed -n -e 's/^\* \(.*\)/\1/p')
                 git pull
                 composer update
-                php artisan migrate
+                php artisan migrate --force
             fi
 
             mkdir -p /app/supervisor/conf.d
