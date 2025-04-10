@@ -1,0 +1,40 @@
+
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: mariadb-repl
+spec:
+  rootPasswordSecretKeyRef:
+    name: mariadb
+    key: root-password
+
+  storage:
+    storageClassName: hitosea-rbd-sc
+    size: 10Gi
+    volumeClaimTemplate:
+      storageClassName: hitosea-rbd-sc
+  replicas: 3
+
+  replication:
+    enabled: true
+
+  service:
+    type: LoadBalancer
+    metadata:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.40.200
+
+  primaryService:
+    type: LoadBalancer
+    metadata:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.40.201
+
+  secondaryService:
+    type: LoadBalancer
+    metadata:
+      annotations:
+        metallb.universe.tf/loadBalancerIPs: 192.168.40.202
+
+  metrics:
+    enabled: true

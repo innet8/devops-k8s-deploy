@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-svc
+spec:
+  type: NodePort
+  ports:
+  - port: 8069
+    targetPort: 8069
+    nodePort: 30300
+  selector:
+    app: odoo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-svc
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: postgres
