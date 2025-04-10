@@ -5,7 +5,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
+  storageClassName: hitosea-rbd-sc
   resources:
-    storageClassName: hitosea-rbd-sc
     requests:
       storage: 10Gi
