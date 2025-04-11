@@ -5,6 +5,6 @@ metadata:
   labels:
     app: postgres
 data:
-  POSTGRES_DB: postgresdb
+  POSTGRES_DB: postgres
   POSTGRES_USER: odoo
   POSTGRES_PASSWORD: odoo
