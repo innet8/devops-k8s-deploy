@@ -71,7 +71,7 @@ spec:
                 composer update
                 php artisan migrate --force
             fi
-            APP_ID=$(grep -e ^APP_ID .env |awk -F'=' '{print $2}')
+            sed -i "s/DB_PASSWORD/ZINCSEARCH_PASSWORD/" app/Module/ZincSearch/ZincSearchBase.php 2>&1
             sed -i "s/'dialogMsg';/'dialogMsg_$APP_ID';/" app/Module/ZincSearch/ZincSearchDialogMsg.php 2>&1
             sed -i "s/'dialogUser';/'dialogUser_$APP_ID';/" app/Module/ZincSearch/ZincSearchDialogMsg.php 2>&1
             sed -i "s/'keyValue';/'keyValue_$APP_ID';/" app/Module/ZincSearch/ZincSearchKeyValue.php 2>&1
@@ -116,6 +116,11 @@ spec:
             secretKeyRef:
               name: dootask-secret
               key: DB_PREFIX
+        - name: APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: dootask-secret
+              key: APP_ID
         volumeMounts:
         - name: app-data
           mountPath: /app

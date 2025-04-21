@@ -9,6 +9,7 @@ stringData:
   DB_PASSWORD: "$DB_PASSWORD"
   DB_ROOT_PASSWORD: "$DB_ROOT_PASSWORD"
   APP_KEY: "$APP_KEY"
+  APP_ID: "$APP_ID"
   DB_HOST: "dootask-mariadb"
   DB_PORT: "3306"
   DB_DATABASE: "dootask"
@@ -163,3 +164,4 @@ data:
     ES_INDEX_SUFFIX=_$APP_ID
     ZINCSEARCH_HOST=z.zincsearch.svc
     ZINCSEARCH_PORT=4080
+    ZINCSEARCH_PASSWORD=123456
