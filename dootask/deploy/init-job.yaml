@@ -71,7 +71,10 @@ spec:
                 composer update
                 php artisan migrate --force
             fi
-
+            APP_ID=$(grep -e ^APP_ID .env |awk -F'=' '{print $2}')
+            sed -i "s/'dialogMsg';/'dialogMsg_$APP_ID';/" app/Module/ZincSearch/ZincSearchDialogMsg.php 2>&1
+            sed -i "s/'dialogUser';/'dialogUser_$APP_ID';/" app/Module/ZincSearch/ZincSearchDialogMsg.php 2>&1
+            sed -i "s/'keyValue';/'keyValue_$APP_ID';/" app/Module/ZincSearch/ZincSearchKeyValue.php 2>&1
             mkdir -p /app/supervisor/conf.d
             mkdir -p /app/php
             
