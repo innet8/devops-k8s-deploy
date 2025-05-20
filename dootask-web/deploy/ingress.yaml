@@ -4,17 +4,29 @@ metadata:
   name: www.dootask.com
   annotations:
     kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
 spec:
   tls:
     - hosts:
         - www.dootask.com
-      secretName: dootask.com
+        - dootask.com
+      secretName: dootask-com-ssl
   rules:
     - host: www.dootask.com
       http:
         paths:
           - path: /
             pathType: Prefix
+            backend:
+              service:
+                name: dootask-web
+                port:
+                  number: 80
+    - host: dootask.com
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: dootask-web

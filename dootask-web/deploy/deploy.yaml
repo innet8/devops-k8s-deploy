@@ -25,7 +25,7 @@ spec:
       volumes:
       - name: config
         configMap:
-          name: nginx-config
+          name: dootask-nginx-config
       imagePullSecrets:
       - name: regcred
 
