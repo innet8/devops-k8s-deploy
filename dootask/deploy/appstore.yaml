@@ -1,0 +1,41 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: dootask-appstore
+  namespace: dootask-demo
+  labels:
+    app: dootask-appstore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dootask-appstore
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: dootask-appstore
+    spec:
+      containers:
+        - name: appstore
+          image: 'dootask/appstore:0.0.3'
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: RUN_MODE
+              value: strict
+            - name: HOST_PWD
+              value: /tmp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dootask-appstore
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: dootask-appstore
