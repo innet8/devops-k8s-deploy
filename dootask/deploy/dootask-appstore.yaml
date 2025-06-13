@@ -2,7 +2,6 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: dootask-appstore
-  namespace: dootask-demo
   labels:
     app: dootask-appstore
 spec:
