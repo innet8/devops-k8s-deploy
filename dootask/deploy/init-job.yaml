@@ -51,7 +51,7 @@ spec:
           - |
             cd /app
             if [ ! -d "/app/dootask/.git" ]; then
-                git clone -b pro --depth=1 https://github.com/kuaifan/dootask.git 
+                git clone -b v0.47.7 --depth=1 https://github.com/kuaifan/dootask.git 
                 cd dootask
                 if [ ! -f "vendor/autoload.php" ]; then
                     composer config repo.packagist composer https://packagist.phpcomposer.com
