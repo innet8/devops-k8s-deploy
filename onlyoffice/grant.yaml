@@ -1,0 +1,15 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: grant-onlyoffice
+spec:
+  mariaDbRef:
+    name: mariadb-repl
+    namespace: hitosea-k8s
+  privileges: 
+    - "ALL PRIVILEGES"
+  database: "onlyoffice"
+  table: "*"
+  username: onlyoffice
+  grantOption: true
+  host: "%"

@@ -1,0 +1,1958 @@
+## Default values for Onlyoffice Docs
+
+## product.name Specifies name of the product
+## This is a service variable. You don't need to change it
+product:
+  name: onlyoffice
+
+## Onlyoffice Docs common parameters
+## This block defines common parameters for all resources
+##
+## Connection parameters to external services
+connections:
+  ## connections.dbType The database type
+  ## Possible values are `postgres`, `mariadb`, `mysql`, `oracle`, `mssql` or `dameng`
+  dbType: mariadb
+  ## connections.dbHost The IP address or the name of the Database host
+  dbHost: mariadb-repl-primary.hitosea-k8s.svc
+  ## connections.dbUser Database user
+  dbUser: onlyoffice
+  ## connections.dbPort Database server port number
+  dbPort: "3306"
+  ## connections.dbName Name of the Database database the application will be connected with
+  ## The database must already exist
+  dbName: onlyoffice
+  ## connections.dbExistingSecret Name of existing secret to use for Database passwords
+  ## Must contain the key specified in `connections.dbSecretKeyName`
+  dbExistingSecret: onlyofficesql
+  ## connections.dbSecretKeyName The name of the key that contains the Database user password
+  ## If you set a password in `dbPassword`, a secret will be automatically created, the key name of which will be the value set here
+  dbSecretKeyName: onlyoffice-password
+  ## connections.dbPassword Database user password
+  ## If set to, it takes priority over the `connections.dbExistingSecret`
+  dbPassword: "q6KY5lxgMevgpJb"
+  ## connections.redisConnectorName Defines which connector to use to connect to Redis
+  ## If you need to connect to Redis Sentinel, set the value `ioredis`
+  redisConnectorName: redis
+  ## connections.redisHost The IP address or the name of the Redis host
+  ## Not used if values are set in `connections.redisClusterNodes`
+  redisHost: redis-master
+  ## connections.redisPort The Redis server port number
+  ## Not used if values are set in `connections.redisClusterNodes`
+  redisPort: "6379"
+  ## connections.redisUser The Redis user name
+  ## ref: https://redis.io/docs/management/security/acl/
+  ## The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file
+  redisUser: default
+  ## connections.redisDBNum Number of the redis logical database to be selected
+  ## ref: https://redis.io/commands/select/
+  ## The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file
+  ## Not used if values are set in `connections.redisClusterNodes`
+  redisDBNum: "0"
+  ## connections.redisClusterNodes List of nodes in the Redis cluster
+  ## There is no need to specify every node in the cluster, 3 should be enough
+  ## You can specify multiple values
+  ## It must be specified in the `host:port` format
+  ## Example:
+  ## redisClusterNodes:
+  ## - 10.244.0.79:6379
+  ## - 192.168.1.25:6379
+  redisClusterNodes: []
+  ## connections.redisExistingSecret Name of existing secret to use for Redis password
+  ## Must contain the key specified in `connections.redisSecretKeyName`
+  ## The password from this secret overrides the value for the password set in the `options` object in `local.json` if you add custom configuration file
+  redisExistingSecret: redis
+  ## connections.redisSecretKeyName The name of the key that contains the Redis user password
+  ## If you set a password in `redisPassword`, a secret will be automatically created, the key name of which will be the value set here
+  redisSecretKeyName: redis-password
+  ## connections.redisPassword The password set for the Redis account
+  ## If set to, it takes priority over the `connections.redisExistingSecret`
+  ## The value in this parameter overrides the value set in the `options` object in `local.json` if you add custom configuration file
+  redisPassword: ""
+  ## connections.redisNoPass Defines whether to use a Redis auth without a password
+  ## If the connection to Redis server does not require a password, set the value to `true`
+  redisNoPass: false
+  ## connections.redisSentinelGroupName Name of a group of Redis instances composed of a master and one or more slaves
+  ## Used if `connections.redisConnectorName` is set to `ioredis`
+  redisSentinelGroupName: mymaster
+  ## connections.redisSentinelExistingSecret Name of existing secret to use for Redis Sentinel password
+  ## Must contain the key specified in `connections.redisSentinelSecretKeyName`
+  ## The password from this secret overrides the value for the password set in the `iooptions` object in `local.json` if you add custom configuration file
+  redisSentinelExistingSecret: ""
+  ## connections.redisSentinelSecretKeyName The name of the key that contains the Redis Sentinel user password
+  ## If you set a password in `redisSentinelPassword`, a secret will be automatically created, the key name of which will be the value set here
+  redisSentinelSecretKeyName: sentinel-password
+  ## connections.redisSentinelPassword The password set for the Redis Sentinel account
+  ## If set to, it takes priority over the `connections.redisSentinelExistingSecret`
+  ## The value in this parameter overrides the value set in the `iooptions` object in `local.json` if you add custom configuration file
+  redisSentinelPassword: ""
+  ## connections.redisSentinelNoPass Defines whether to use a Redis Sentinel auth without a password
+  ## If the connection to Redis Sentinel does not require a password, set the value to `true`
+  redisSentinelNoPass: true
+  ## connections.amqpType Defines the AMQP server type
+  ## Possible values are `rabbitmq` or `activemq`
+  amqpType: rabbitmq
+  ## connections.amqpHost The IP address or the name of the AMQP server
+  amqpHost: rabbitmq
+  ## connections.amqpPort The port for the connection to AMQP server
+  amqpPort: "5672"
+  ## connections.amqpVhost The virtual host for the connection to AMQP server
+  amqpVhost: "/"
+  ## connections.amqpUser The username for the AMQP server account
+  amqpUser: user
+  ## connections.amqpProto The protocol for the connection to AMQP server
+  amqpProto: amqp
+  ## connections.amqpExistingSecret The name of existing secret to use for AMQP server passwords
+  ## Must contain the key specified in `connections.amqpSecretKeyName`
+  amqpExistingSecret: rabbitmq
+  ## connections.amqpSecretKeyName The name of the key that contains the AMQP server user password
+  ## If you set a password in `amqpPassword`, a secret will be automatically created, the key name of which will be the value set here
+  amqpSecretKeyName: rabbitmq-password
+  ## connections.amqpPassword AMQP server user password
+  ## If set to, it takes priority over the `connections.amqpExistingSecret`
+  amqpPassword: ""
+## Web Proxy parameters
+## Used if your network has a web proxy
+## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
+webProxy:
+  ## webProxy.enabled Specify whether a Web proxy is used in your network to access the Pods of k8s cluster to the Internet
+  enabled: false
+  ## webProxy.http Web Proxy address for `HTTP` traffic
+  http: "http://proxy.example.com"
+  ## webProxy.https Web Proxy address for `HTTPS` traffic
+  https: "https://proxy.example.com"
+  ## webProxy.noProxy Patterns for IP addresses or k8s services name or domain names that shouldn’t use the Web Proxy
+  noProxy: "localhost,127.0.0.1,docservice"
+## privateCluster Specify whether the k8s cluster is used in a private network without internet access
+## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
+privateCluster: false
+## commonNameSuffix The name that will be added to the name of all created resources as a suffix
+## Example:
+## commonNameSuffix: "{{ .Chart.Name }}"
+commonNameSuffix: ""
+## namespaceOverride The name of the namespace in which Onlyoffice Docs will be deployed
+## If not set, the name will be taken from .Release.Namespace
+namespaceOverride: ""
+## commonLabels Defines labels that will be additionally added to all the deployed resources
+## You can also use `tpl` as the value for the key
+## ref: https://helm.sh/docs/chart_best_practices/labels/
+## Example:
+## commonLabels:
+##   app.kubernetes.io/name: "{{ .Chart.Name }}"
+##   helm.sh/chart: '{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}'
+##   app.kubernetes.io/managed-by: "{{ .Release.Service }}"
+##   app.kubernetes.io/instance: "{{ .Release.Name }}"
+##   app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+commonLabels: {}
+## commonAnnotations Defines annotations that will be additionally added to all the deployed resources
+## You can also use `tpl` as the value for the key
+## Some resources may override the values specified here with their own
+## Example:
+## commonAnnotations:
+##   "key1": "value1"
+##   "key2": "{{ value2 }}"
+commonAnnotations: {}
+## Service account parameters
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+serviceAccount:
+  ## serviceAccount.create Enable ServiceAccount creation
+  create: false
+  ## serviceAccount.name Name of the ServiceAccount to be used
+  ## If not set and `serviceAccount.create` is `true` the name will be taken from .Release.Name
+  ## If not set and `serviceAccount.create` is `false` the name will be "default"
+  name: ""
+  ## serviceAccount.annotations Map of annotations to add to the ServiceAccount
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## serviceAccount.automountServiceAccountToken Enable auto mount of ServiceAccountToken on the serviceAccount created
+  ## Used only if `serviceAccount.create` is `true`
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting
+  automountServiceAccountToken: true
+## Persistence parameters
+persistence:
+  ## persistence.existingClaim Name of an existing PVC to use
+  ## If not specified, a PVC named "ds-files" will be created
+  existingClaim: ""
+  ## persistence.annotations Defines annotations that will be additionally added to "ds-files" PVC
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## persistence.storageClass PVC Storage Class for Onlyoffice Docs data volume
+  storageClass: "csi-cephfs-sc"
+  ## persistence.size PVC Storage Request for Onlyoffice Docs volume
+  size: 20Gi
+  ## persistence.storageS3 Defines whether S3 will be used as cache storage
+  ## Set to `true` if you will use S3 as cache storage
+  ## If set to `true` then PVC "ds-files" will not be created
+  storageS3: false
+## Configure a Security Context for a Pod
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+podSecurityContext:
+  ## podSecurityContext.enabled Enable security context for the pods
+  ## If set to true, `podSecurityContext` is enabled for all resources describing the podTemplate
+  enabled: false
+  ## Converter Deployment podSecurityContext parameters
+  converter:
+    ## podSecurityContext.converter.fsGroup Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in the Converter Pod
+    fsGroup: 101
+  ## Docservice Deployment podSecurityContext parameters
+  docservice:
+    ## podSecurityContext.docservice.fsGroup Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in the Docservice Pod
+    fsGroup: 101
+  ## Jobs podSecurityContext parameters
+  jobs:
+    ## podSecurityContext.jobs.fsGroup Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in Pods created by Jobs
+    fsGroup: 101
+  ## Example StatefulSet podSecurityContext parameters
+  example:
+    ## podSecurityContext.example.fsGroup Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in the Example Pod
+    fsGroup: 1001
+  ## Tests Pod podSecurityContext parameters
+  tests:
+    ## podSecurityContext.tests.fsGroup Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in the Test Pod
+    fsGroup: 101
+## Pod anti-affinity parameters
+## Pod anti-affinity prohibits at all (required) or, if possible (preferred), placing a second pod with the same label on the same node
+podAntiAffinity:
+  ## podAntiAffinity.type Types of Pod antiaffinity. Allowed values: `soft` or `hard` (soft=preferred, hard=required)
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  type: "soft"
+  ## podAntiAffinity.topologyKey Node label key to match
+  topologyKey: kubernetes.io/hostname
+  ## podAntiAffinity.weight Priority when selecting node. It is in the range from 1 to 100. Used only when `podAntiAffinity.type=soft`
+  weight: "100"
+## nodeSelector Node labels for pods assignment
+## Each ONLYOFFICE Docs services can override the values specified here with its own
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector
+nodeSelector: {}
+## tolerations Tolerations for pods assignment
+## Each ONLYOFFICE Docs services can override the values specified here with its own
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+tolerations: []
+## imagePullSecrets Container image registry secret name
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: ""
+## Onlyoffice Docs service parameters
+service:
+  ## service.existing The name of an existing service for ONLYOFFICE Docs. If not set, a service named `documentserver` will be created
+  ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs/blob/master/templates/services/documentserver.yaml
+  existing: ""
+  ## service.annotations Map of annotations to add to the ONLYOFFICE Docs service
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## service.type ONLYOFFICE Docs service type
+  type: ClusterIP
+  ## service.port ONLYOFFICE Docs service port
+  port: 8888
+  ## service.sessionAffinity Session Affinity for ONLYOFFICE Docs service
+  ## If not set, `None` will be set as the default value
+  ## ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-affinity
+  sessionAffinity: ""
+  ## service.sessionAffinityConfig Configuration for ONLYOFFICE Docs service Session Affinity
+  ## Used if the `service.sessionAffinity` is set
+  ## ref: https://kubernetes.io/docs/reference/networking/virtual-ips/#session-stickiness-timeout
+  ## Example:
+  ## sessionAffinityConfig:
+  ##   clientIP:
+  ##     timeoutSeconds: 900
+  sessionAffinityConfig: {}
+## Onlyoffice Docs license
+license:
+  ## license.existingSecret Name of the existing secret that contains the license
+  ## Must contain the key `license.lic`
+  existingSecret: ""
+  ## license.existingClaim Name of the existing PVC in which the license is stored
+  ## Must contain the file `license.lic`
+  existingClaim: ""
+## Onlyoffice Docs logging parameters
+log:
+  ## log.level Defines the type and severity of a logged event
+  ## Possible values are `ALL`, `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `FATAL`, `MARK`, `OFF`
+  level: WARN
+  ## log.type Defines the format of a logged event
+  ## Possible values are `pattern`, `json`, `basic`, `coloured`, `messagePassThrough`, `dummy`
+  type: pattern
+  ## log.pattern Defines the log pattern if `log.type=pattern`
+  ## ref: https://github.com/log4js-node/log4js-node/blob/master/docs/layouts.md#pattern-format
+  pattern: "[%d] [%p] [%X{DOCID}] [%X{USERID}] %c - %.10000m"
+## Onlyoffice Docs `WOPI` parameters
+wopi:
+  ## wopi.enabled Defines if `WOPI` is enabled
+  ## If the parameter is enabled, then caching attributes for the mounted directory (`PVC`) should be disabled for the client
+  enabled: false
+  keys:
+    ## wopi.keys.generation Defines whether to generate API keys
+    ## Used if you set `wopi.enabled` to `true`
+    generation: true
+    ## wopi.keys.newKeysExistingSecret Name of existing secret containing the WOPI keys
+    ## Must contain the keys `WOPI_PRIVATE_KEY`, `WOPI_PUBLIC_KEY`, `WOPI_MODULUS_KEY` and `WOPI_EXPONENT_KEY`
+    ## If not set, new keys will be generated and a secret will be created from them
+    newKeysExistingSecret: ""
+    ## wopi.keys.oldKeysExistingSecret Name of existing secret containing the old WOPI keys
+    ## Must contain the keys `WOPI_PRIVATE_KEY_OLD`, `WOPI_PUBLIC_KEY_OLD`, `WOPI_MODULUS_KEY_OLD` and `WOPI_EXPONENT_KEY_OLD`
+    ## If not set, new keys will be generated and a secret will be created from them
+    oldKeysExistingSecret: ""
+    ## If not set to `wopi.keys.newKeysExistingSecret` and `wopi.keys.oldKeysExistingSecret`, then secrets with the same keys will be created
+## Onlyoffice Docs metrics parameters
+## StatsD is used as an intermediate metric collector
+metrics:
+  ## metrics.enabled Specifies the enabling StatsD for ONLYOFFICE Docs
+  enabled: false
+  ## metrics.host Defines StatsD listening host
+  host: statsd-exporter-prometheus-statsd-exporter
+  ## metrics.port Defines StatsD listening port
+  port: "8125"
+  ## metrics.prefix Defines StatsD metrics prefix for backend services
+  prefix: ds.
+## JSON Web Token parameters
+jwt:
+  ## jwt.enabled Specifies the enabling the JSON Web Token validation by the ONLYOFFICE Docs
+  ## Common for inbox and outbox requests
+  enabled: false
+  ## jwt.secret Defines the secret key to validate the JSON Web Token in the request to the ONLYOFFICE Docs
+  ## Common for inbox and outbox requests
+  ## If the value is empty, a random one will be generated, which will be used later in the upgrade
+  ## If a value is set, it will be used
+  secret: ""
+  ## jwt.header Defines the http header that will be used to send the JSON Web Token
+  ## Common for inbox and outbox requests
+  header: "Authorization"
+  ## jwt.inBody Specifies the enabling the token validation in the request body to the ONLYOFFICE Docs
+  inBody: false
+  ## jwt.inbox JSON Web Token validation parameters for inbox requests only
+  ## jwt.outbox JSON Web Token validation parameters for outbox requests only
+  ## If not specified, the values of the parameters of the common `jwt` are used
+  ## Example:
+  ## inbox:
+  ##   enabled: true
+  ##   secret: "MYSECRET"
+  ##   header: "Authorization"
+  inbox: {}
+  ## outbox:
+  ##   enabled: true
+  ##   secret: "MYSECRET"
+  ##   header: "Authorization"
+  outbox: {}
+  ## jwt.existingSecret The name of an existing secret containing variables for jwt
+  ## If not specified, a secret named `jwt` will be created
+  existingSecret: ""
+## Config for overriding default values
+extraConf:
+  ## extraConf.configMap The name of the ConfigMap containing the json file that override the default values
+  configMap: ""
+  ## extraConf.filename The name of the json file that contains custom values
+  ## Must be the same as the `key` name in `extraConf.ConfigMap`
+  filename: local.json
+## Additional customers interface themes
+extraThemes:
+  ## extraThemes.configMap The name of the ConfigMap containing the json file that contains the interface themes
+  configMap: ""
+  ## extraThemes.filename The name of the json file that contains custom interface themes
+  ## Must be the same as the `key` name in `extraThemes.configMap`
+  filename: custom-themes.json
+## sqlScripts.branchName The name of the repository branch from which sql scripts will be downloaded
+## ref: https://github.com/ONLYOFFICE/server/tree/master/schema
+sqlScripts:
+  branchName: master
+## Onlyoffice Docs request-filtering-agent parameters
+## These parameters are used if JWT is disabled: `jwt.enabled=false`
+requestFilteringAgent:
+  ## requestFilteringAgent.allowPrivateIPAddress Defines if it is allowed to connect private IP address or not
+  allowPrivateIPAddress: false
+  ## requestFilteringAgent.allowMetaIPAddress Defines if it is allowed to connect meta address or not
+  allowMetaIPAddress: false
+  ## requestFilteringAgent.allowIPAddressList Defines the list of IP addresses allowed to connect
+  ## This values are preferred than `requestFilteringAgent.denyIPAddressList`
+  ## Example:
+  ## allowIPAddressList:
+  ## - 10.244.0.79
+  ## - 192.168.1.25
+  allowIPAddressList: []
+  ## requestFilteringAgent.denyIPAddressList Defines the list of IP addresses allowed to connect
+  ## Example:
+  ## denyIPAddressList:
+  ## - 10.244.0.80
+  denyIPAddressList: []
+
+## Onlyoffice Docs Docservice Deployment parameters
+## This block defines the parameters common to all the Pods of this deployment
+##
+docservice:
+  ## docservice.annotations Defines annotations that will be additionally added to Docservice Deployment
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## docservice.podAnnotations Map of annotations to add to the Docservice deployment pods
+  podAnnotations:
+    rollme: "{{ randAlphaNum 5 | quote }}"
+  ## docservice.replicas Number of Docservice replicas to deploy
+  ## If the `docservice.autoscaling.enabled` parameter is enabled, it is ignored
+  replicas: 2
+  ## Update strategy used to replace old Pods by new ones. Allowed values: `RollingUpdate` or `Recreate`
+  ## For Docservice deployment, it is recommended to use the `Recreate` type
+  ## docservice.updateStrategy.type Docservice deployment update strategy type
+  updateStrategy:
+    type: Recreate
+  ## docservice.customPodAntiAffinity Prohibiting the scheduling of Docservice Pods relative to other Pods containing the specified labels on the same node
+  ## Example:
+  ## customPodAntiAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - converter
+  ##     topologyKey: kubernetes.io/hostname
+  customPodAntiAffinity: {}
+  ## Pod affinity rules for Docservice Pods scheduling by nodes relative to other Pods
+  ## Pod affinity allow you to constrain which nodes Docservice Pods can be scheduled on based on the labels of Pods already running on that node
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ## Example:
+  ## podAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - store
+  ##     topologyKey: topology.kubernetes.io/zone
+  podAffinity: {}
+  ## Node affinity rules for Docservice Pods scheduling by nodes
+  ## Node affinity allow you to constrain which nodes Docservice Pod can be scheduled on based on node labels
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ## Example:
+  ## nodeAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     preference:
+  ##       matchExpressions:
+  ##       - key: kubernetes.io/name
+  ##         operator: In
+  ##         values:
+  ##         - name1
+  ##         - name2
+  nodeAffinity: {}
+  ## docservice.nodeSelector Node labels for Docservice Pods assignment
+  ## If set to, it takes priority over the `nodeSelector`
+  nodeSelector: {}
+  ## docservice.tolerations Tolerations for Docservice Pods assignment
+  ## If set to, it takes priority over the `tolerations`
+  tolerations: []
+  ## Horizontal Pod Autoscaling parameters
+  ## Horizontal Pod Autoscaling is used for autoscaling of the Docservice deployment
+  ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+  ## The parameters below for autoscaling are used only when `docservice.autoscaling.enabled=true`
+  autoscaling:
+    ## docservice.autoscaling.enabled Enable Docservice deployment autoscaling
+    enabled: false
+    ## docservice.autoscaling.annotations Defines annotations that will be additionally added to Docservice deployment HPA
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## docservice.autoscaling.minReplicas Docservice deployment autoscaling minimum number of replicas
+    minReplicas: 2
+    ## docservice.autoscaling.maxReplicas Docservice deployment autoscaling maximum number of replicas
+    maxReplicas: 4
+    targetCPU:
+      ## docservice.autoscaling.targetCPU.enabled Enable autoscaling of Docservice deployment by CPU usage percentage
+      enabled: true
+      ## docservice.autoscaling.targetCPU.utilizationPercentage Docservice deployment autoscaling target CPU percentage
+      utilizationPercentage: 70
+    targetMemory:
+      ## docservice.autoscaling.targetMemory.enabled Enable autoscaling of Docservice deployment by memory usage percentage
+      enabled: false
+      ## docservice.autoscaling.targetMemory.utilizationPercentage Docservice deployment autoscaling target memory percentage
+      utilizationPercentage: 70
+    ## docservice.autoscaling.customMetricsType Custom, additional or external autoscaling metrics for the Docservice deployment
+    ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#autoscaling-on-multiple-metrics-and-custom-metrics
+    ## Example:
+    ## customMetricsType:
+    ##   - type: Object
+    ##     object:
+    ##       metric:
+    ##         name: requests-per-second
+    ##       describedObject:
+    ##         apiVersion: networking.k8s.io/v1
+    ##         kind: Ingress
+    ##         name: main-route
+    ##       target:
+    ##         type: Value
+    ##         value: 2k
+    customMetricsType: []
+    ## docservice.autoscaling.behavior Configuring Docservice deployment scaling behavior policies for the `scaleDown` and `scaleUp` fields
+    ## If not set the default values are used:
+    ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#default-behavior
+    ## Example:
+    ## behavior:
+    ##   scaleDown:
+    ##     stabilizationWindowSeconds: 300
+    ##     policies:
+    ##     - type: Pods
+    ##       value: 4
+    ##       periodSeconds: 60
+    ##   scaleUp:
+    ##     stabilizationWindowSeconds: 0
+    ##     policies:
+    ##     - type: Percent
+    ##       value: 70
+    ##       periodSeconds: 15
+    ##     selectPolicy: Max
+    behavior: {}
+  ## docservice.terminationGracePeriodSeconds The time to terminate gracefully during which the Docservice Pod will have the `Terminating` status
+  terminationGracePeriodSeconds: 30
+  ## docservice.hostAliases Adds additional entries to the hosts file in the Docservice and Proxy containers
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
+  ## Docservice initContainers parameters
+  ## Containers that run before docservice and proxy containers in a Pod
+  ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## Example:
+  ## initContainers:
+  ##   - name: change-volume-owner
+  ##     image: busybox:latest
+  ##     command: ['chown', '-R', '101:101', '/var/lib/onlyoffice/documentserver/App_Data/cache/files']
+  ##     volumeMounts:
+  ##     - name: ds-files
+  ##       mountPath: /var/lib/onlyoffice/documentserver/App_Data/cache/files
+  initContainers: []
+  ## docservice.extraVolumes An array with extra volumes for the docservice Pod
+  ## Example:
+  ## extraVolumes:
+  ##   - name: my-volume
+  ##     configMap:
+  ##       name: my-cm
+  extraVolumes: []
+  ## Parameters of the docservice container of the Docservice deployment
+  ##
+  image:
+    ## docservice.image.repository docservice container image repository
+    ## For more information, see after the Parameters table
+    ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
+    repository: onlyoffice/docs-docservice-de
+    ## docservice.image.tag docservice container image tag
+    tag: 8.3.3-1
+    ## docservice.image.pullPolicy docservice container image pull policy
+    pullPolicy: IfNotPresent
+  ## Configure a Security Context for the Docservice container
+  containerSecurityContext:
+    ## docservice.containerSecurityContext.enabled Enable security context for the Docservice container
+    enabled: false
+    ## docservice.containerSecurityContext.runAsUser User ID for the Docservice container
+    runAsUser: 101
+    ## docservice.containerSecurityContext.runAsGroup Group ID for the Docservice container
+    runAsGroup: 101
+    ## docservice.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+    runAsNonRoot: true
+    ## docservice.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+    allowPrivilegeEscalation: false
+    ## docservice.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Docservice container
+    seccompProfile:
+      type: RuntimeDefault
+    ## docservice.containerSecurityContext.capabilities Defines the privileges granted to the process
+    capabilities:
+      drop: ["ALL"]
+  ## docservice.lifecycleHooks Defines the Docservice container lifecycle hooks
+  ## ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+  ## It is used to trigger events to run at certain points in a container's lifecycle
+  ## There are two hooks that are exposed: `PostStart` and `PreStop`
+  ## Example:
+  ## lifecycleHooks:
+  ##   preStop:
+  ##     exec:
+  ##       command: ["/bin/sh", "-c", "sleep 25"]
+  lifecycleHooks: {}
+  ## docservice.containerPorts.http docservice container port
+  containerPorts:
+    http: 8000
+  ## Probe used for the docservice container: startup, readiness and liveness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  ## The parameters below for startup probes are used only when `docservice.startupProbe.enabled=true`
+  startupProbe:
+    ## docservice.startupProbe.enabled Enable startupProbe for docservice container
+    enabled: true
+    httpGet:
+      ## docservice.startupProbe.httpGet.path Checking the path for startupProbe
+      path: /index.html
+      ## docservice.startupProbe.httpGet.port Checking the port for startupProbe
+      port: 8000
+    ## docservice.startupProbe.failureThreshold Failure threshold for startupProbe
+    failureThreshold: 30
+    ## docservice.startupProbe.periodSeconds Period seconds for startupProbe
+    periodSeconds: 10
+  ## The parameters below for readiness probes are used only when `docservice.readinessProbe.enabled=true`
+  readinessProbe:
+    ## docservice.readinessProbe.enabled Enable readinessProbe for docservice container
+    enabled: true
+    ## docservice.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    failureThreshold: 2
+    httpGet:
+      ## docservice.readinessProbe.httpGet.path Checking the path for readinessProbe
+      path: /index.html
+      ## docservice.readinessProbe.httpGet.port Checking the port for readinessProbe
+      port: 8000
+    ## docservice.readinessProbe.periodSeconds Period seconds for readinessProbe
+    periodSeconds: 10
+    ## docservice.readinessProbe.successThreshold Success threshold for readinessProbe
+    successThreshold: 1
+    ## docservice.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    timeoutSeconds: 3
+  ## The parameters below for liveness probes are used only when `docservice.livenessProbe.enabled=true`
+  livenessProbe:
+    ## docservice.livenessProbe.enabled Enable livenessProbe for docservice container
+    enabled: true
+    ## docservice.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    failureThreshold: 3
+    httpGet:
+      ## docservice.livenessProbe.httpGet.path Checking the path for livenessProbe
+      path: /index.html
+      ## docservice.livenessProbe.httpGet.port Checking the port for livenessProbe
+      port: 8000
+    ## docservice.livenessProbe.periodSeconds Period seconds for livenessProbe
+    periodSeconds: 10
+    ## docservice.livenessProbe.successThreshold Success threshold for livenessProbe
+    successThreshold: 1
+    ## docservice.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    timeoutSeconds: 3
+  ## docservice container resource requests and limits
+  ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  ## docservice.resources.requests The requested resources for the docservice container
+  ## docservice.resources.limits The resources limits for the docservice container
+  resources:
+    ## Example:
+    ## requests:
+    ##   memory: "256Mi"
+    ##   cpu: "100m"
+    requests: {}
+    ## limits:
+    ##   memory: "2Gi"
+    ##   cpu: "1000m"
+    limits: {}
+  ## docservice.extraEnvVars An array with extra env variables for the Docservice container
+  ## Example:
+  ## extraEnvVars:
+  ##   - name: my_env
+  ##     value: "my_value"
+  extraEnvVars: []
+  ## docservice.extraVolumeMounts An array with extra volume mounts for the Docservice container
+  ## Example:
+  ## extraVolumeMounts:
+  ##   - name: my-volume
+  ##     mountPath: /my_dir/my_cm.txt
+  ##     subPath: my_cm.txt
+  extraVolumeMounts: []
+## Parameters of the proxy container of the Docservice deployment
+##
+proxy:
+  ## proxy.accessLog Defines the nginx config access_log format directive
+  ## ref: https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
+  ## Example:
+  ## accessLog: "main"
+  accessLog: "off"
+  ## proxy.logFormat Defines the format of log entries using text and various variables
+  ## ref: https://nginx.org/en/docs/http/ngx_http_log_module.html#log_format
+  ## Example:
+  ## logFormat:
+  ## - '$remote_addr - $remote_user [$time_local] "$request" '
+  ## - '$status $body_bytes_sent "$http_referer" '
+  ## - '"$http_user_agent" "$http_x_forwarded_for" $request_time'
+  logFormat: []
+  ## proxy.gzipProxied Defines the nginx config gzip_proxied directive
+  ## ref: https://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip_proxied
+  gzipProxied: "off"
+  ## proxy.clientMaxBodySize Defines the nginx config client_max_body_size directive
+  ## ref: https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size
+  clientMaxBodySize: "100m"
+  ## proxy.workerConnections Defines the nginx config worker_connections directive
+  ## ref: https://nginx.org/en/docs/ngx_core_module.html#worker_connections
+  workerConnections: "4096"
+  ## proxy.secureLinkSecret Defines secret for the nginx config directive secure_link_md5
+  ## ref: https://nginx.org/en/docs/http/ngx_http_secure_link_module.html#secure_link_md5
+  ## If the value is empty, a random one will be generated, which will be used later in the upgrade
+  ## If a value is set, it will be used
+  secureLinkSecret: ""
+  ## proxy.infoAllowedIP Defines ip addresses for accessing the info page
+  ## Example:
+  ## infoAllowedIP:
+  ## - 10.244.0.79
+  ## - 192.168.1.0/24
+  infoAllowedIP: []
+  ## proxy.infoAllowedUser Defines user name for accessing the info page
+  ## If not set to, Nginx Basic Authentication will not be applied to access the info page
+  ## ref: https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html
+  ## For more details, see here:
+  ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#12-access-to-the-info-page-optional
+  infoAllowedUser: ""
+  ## proxy.infoAllowedSecretKeyName The name of the key that contains the info auth user password
+  ## Used if `proxy.infoAllowedUser` is set
+  infoAllowedSecretKeyName: info-auth-password
+  ## proxy.infoAllowedExistingSecret Name of existing secret to use for info auth password
+  ## Used if `proxy.infoAllowedUser` is set
+  ## Must contain the key specified in `proxy.infoAllowedSecretKeyName`
+  ## If set to, it takes priority over the `proxy.infoAllowedPassword`
+  infoAllowedExistingSecret: ""
+  ## proxy.infoAllowedPassword Defines user password for accessing the info page
+  ## Used if `proxy.infoAllowedUser` is set
+  ## If the value is empty, a random one will be generated, which will be used later in the upgrade
+  ## If a value is set, it will be used
+  infoAllowedPassword: ""
+  ## proxy.welcomePage.enabled Defines whether the welcome page will be displayed
+  welcomePage:
+    enabled: false
+  image:
+    ## proxy.image.repository proxy container image repository
+    ## For more information, see after the Parameters table
+    ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
+    repository: onlyoffice/docs-proxy-de
+    ## proxy.image.tag proxy container image tag
+    tag: 8.3.3-1
+    ## proxy.image.pullPolicy proxy container image pull policy
+    pullPolicy: IfNotPresent
+  ## Configure a Security Context for the Proxy container
+  containerSecurityContext:
+    ## proxy.containerSecurityContext.enabled Enable security context for the Proxy container
+    enabled: false
+    ## proxy.containerSecurityContext.runAsUser User ID for the Proxy container
+    runAsUser: 101
+    ## proxy.containerSecurityContext.runAsGroup Group ID for the Proxy container
+    runAsGroup: 101
+    ## proxy.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+    runAsNonRoot: true
+    ## proxy.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+    allowPrivilegeEscalation: false
+    ## proxy.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Proxy container
+    seccompProfile:
+      type: RuntimeDefault
+    ## proxy.containerSecurityContext.capabilities Defines the privileges granted to the process
+    capabilities:
+      drop: ["ALL"]
+  ## proxy.lifecycleHooks Defines the Proxy container lifecycle hooks
+  ## ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+  ## It is used to trigger events to run at certain points in a container's lifecycle
+  ## There are two hooks that are exposed: `PostStart` and `PreStop`
+  ## Example:
+  ## lifecycleHooks:
+  ##   preStop:
+  ##     exec:
+  ##       command: ["/bin/sh", "-c", "sleep 25"]
+  lifecycleHooks: {}
+  ## proxy.containerPorts.http proxy container port
+  containerPorts:
+    http: 8888
+  ## Probe used for the proxy container: startup, readiness and liveness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  ## The parameters below for startup probes are used only when `proxy.startupProbe.enabled=true`
+  startupProbe:
+    ## proxy.startupProbe.enabled Enable startupProbe for proxy container
+    enabled: true
+    httpGet:
+      ## proxy.startupProbe.httpGet.path Checking the path for startupProbe
+      path: /index.html
+      ## proxy.startupProbe.httpGet.port Checking the port for startupProbe
+      port: 8888
+    ## proxy.startupProbe.failureThreshold Failure threshold for startupProbe
+    failureThreshold: 30
+    ## proxy.startupProbe.periodSeconds Period seconds for startupProbe
+    periodSeconds: 10
+  ## The parameters below for readiness probes are used only when `proxy.readinessProbe.enabled=true`
+  readinessProbe:
+    ## proxy.readinessProbe.enabled Enable readinessProbe for proxy container
+    enabled: true
+    ## proxy.readinessProbe.failureThreshold Failure threshold for readinessProbe
+    failureThreshold: 2
+    httpGet:
+      ## proxy.readinessProbe.httpGet.path Checking the path for readinessProbe
+      path: /index.html
+      ## proxy.readinessProbe.httpGet.port Checking the port for readinessProbe
+      port: 8888
+    ## proxy.readinessProbe.periodSeconds Period seconds for readinessProbe
+    periodSeconds: 10
+    ## proxy.readinessProbe.successThreshold Success threshold for readinessProbe
+    successThreshold: 1
+    ## proxy.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+    timeoutSeconds: 3
+  ## The parameters below for liveness probes are used only when `proxy.livenessProbe.enabled=true`
+  livenessProbe:
+    ## proxy.livenessProbe.enabled Enable livenessProbe for proxy container
+    enabled: true
+    ## proxy.livenessProbe.failureThreshold Failure threshold for livenessProbe
+    failureThreshold: 3
+    httpGet:
+      ## proxy.livenessProbe.httpGet.path Checking the path for livenessProbe
+      path: /index.html
+      ## proxy.livenessProbe.httpGet.port Checking the port for livenessProbe
+      port: 8888
+    ## proxy.livenessProbe.periodSeconds Period seconds for livenessProbe
+    periodSeconds: 10
+    ## proxy.livenessProbe.successThreshold Success threshold for livenessProbe
+    successThreshold: 1
+    ## proxy.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+    timeoutSeconds: 3
+  ## proxy container resource requests and limits
+  ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  ## proxy.resources.requests The requested resources for the proxy container
+  ## proxy.resources.limits The resources limits for the proxy container
+  resources:
+    ## Example:
+    ## requests:
+    ##   memory: "256Mi"
+    ##   cpu: "100m"
+    requests: {}
+    ## limits:
+    ##   memory: "2Gi"
+    ##   cpu: "1000m"
+    limits: {}
+  ## proxy.extraEnvVars An array with extra env variables for the Proxy container
+  ## Example:
+  ## extraEnvVars:
+  ##   - name: my_env
+  ##     value: "my_value"
+  extraEnvVars: []
+  ## proxy.extraVolumeMounts An array with extra volume mounts for the Proxy container
+  ## Example:
+  ## extraVolumeMounts:
+  ##   - name: my-volume
+  ##     mountPath: /my_dir/my_cm.txt
+  ##     subPath: my_cm.txt
+  extraVolumeMounts: []
+
+## Onlyoffice Docs Converter Deployment parameters
+## This block defines the parameters common to all the Pods of this deployment
+##
+converter:
+  ## converter.annotations Defines annotations that will be additionally added to Converter Deployment
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## converter.podAnnotations Map of annotations to add to the Converter deployment pods
+  podAnnotations:
+    rollme: "{{ randAlphaNum 5 | quote }}"
+  ## converter.replicas Number of Converter replicas to deploy
+  ## If the `converter.autoscaling.enabled` parameter is enabled, it is ignored
+  replicas: 2
+  ## Update strategy used to replace old Pods by new ones. Allowed values: `RollingUpdate` or `Recreate`
+  ## converter.updateStrategy.type Docservice deployment update strategy type
+  updateStrategy:
+    type: Recreate
+  ## converter.customPodAntiAffinity Prohibiting the scheduling of Converter Pods relative to other Pods containing the specified labels on the same node
+  ## Example:
+  ## customPodAntiAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - docservice
+  ##     topologyKey: kubernetes.io/hostname
+  customPodAntiAffinity: {}
+  ## Pod affinity rules for Converter Pods scheduling by nodes relative to other Pods
+  ## Pod affinity allow you to constrain which nodes Converter Pod can be scheduled on based on the labels of Pods already running on that node
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ## Example:
+  ## podAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     podAffinityTerm:
+  ##       labelSelector:
+  ##         matchExpressions:
+  ##         - key: app
+  ##           operator: NotIn
+  ##           values:
+  ##           - database
+  ##       topologyKey: kubernetes.io/hostname
+  podAffinity: {}
+  ## Node affinity rules for Converter Pods scheduling by nodes
+  ## Node affinity allow you to constrain which nodes Converter Pod can be scheduled on based on node labels
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ## Example:
+  ## nodeAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##     nodeSelectorTerms:
+  ##     - matchExpressions:
+  ##       - key: topology.kubernetes.io/zone
+  ##         operator: In
+  ##         values:
+  ##         - zone1
+  ##         - zone2
+  nodeAffinity: {}
+  ## converter.nodeSelector Node labels for Converter Pods assignment
+  ## If set to, it takes priority over the `nodeSelector`
+  nodeSelector: {}
+  ## converter.tolerations Tolerations for Converter Pods assignment
+  ## If set to, it takes priority over the `tolerations`
+  tolerations: []
+  ## Horizontal Pod Autoscaling parameters
+  ## Horizontal Pod Autoscaling is used for autoscaling of the Converter deployment
+  ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+  ## The parameters below for autoscaling are used only when `converter.autoscaling.enabled=true`
+  autoscaling:
+    ## converter.autoscaling.enabled Enable Converter deployment autoscaling
+    enabled: false
+    ## converter.autoscaling.annotations Defines annotations that will be additionally added to Converter deployment HPA
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## converter.autoscaling.minReplicas Converter deployment autoscaling minimum number of replicas
+    minReplicas: 2
+    ## converter.autoscaling.maxReplicas Converter deployment autoscaling maximum number of replicas
+    maxReplicas: 16
+    targetCPU:
+      ## converter.autoscaling.targetCPU.enabled Enable autoscaling of Converter deployment by CPU usage percentage
+      enabled: true
+      ## converter.autoscaling.targetCPU.utilizationPercentage Converter deployment autoscaling target CPU percentage
+      utilizationPercentage: 70
+    targetMemory:
+      ## converter.autoscaling.targetMemory.enabled Enable autoscaling of Converter deployment by memory usage percentage
+      enabled: false
+      ## converter.autoscaling.targetMemory.utilizationPercentage Converter deployment autoscaling target memory percentage
+      utilizationPercentage: 70
+    ## converter.autoscaling.customMetricsType Custom, additional or external autoscaling metrics for the Converter deployment
+    ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/#autoscaling-on-multiple-metrics-and-custom-metrics
+    ## Example:
+    ## customMetricsType:
+    ##   - type: Pods
+    ##     pods:
+    ##       metric:
+    ##         name: packets-per-second
+    ##       target:
+    ##         type: AverageValue
+    ##         averageValue: 1k
+    customMetricsType: []
+    ## converter.autoscaling.behavior Configuring Converter deployment scaling behavior policies for the `scaleDown` and `scaleUp` fields
+    ## If not set the default values are used:
+    ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#default-behavior
+    ## Example:
+    ## behavior:
+    ##   scaleDown:
+    ##     stabilizationWindowSeconds: 300
+    ##     policies:
+    ##     - type: Percent
+    ##       value: 10
+    ##       periodSeconds: 60
+    ##   scaleUp:
+    ##     stabilizationWindowSeconds: 0
+    ##     policies:
+    ##     - type: Percent
+    ##       value: 10
+    ##       periodSeconds: 15
+    ##     - type: Pods
+    ##       value: 2
+    ##       periodSeconds: 15
+    ##     selectPolicy: Max
+    behavior: {}
+  ## converter.terminationGracePeriodSeconds The time to terminate gracefully during which the Converter Pod will have the `Terminating` status
+  terminationGracePeriodSeconds: 30
+  ## converter.hostAliases Adds additional entries to the hosts file in the Converter container
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
+  ## Converter initContainers parameters
+  ## Containers that run before converter container in a Pod
+  ## ref:https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## Example:
+  ## initContainers:
+  ##   - name: change-volume-owner
+  ##     image: busybox:latest
+  ##     command: ['chown', '-R', '101:101', '/var/lib/onlyoffice/documentserver/App_Data/cache/files']
+  ##     volumeMounts:
+  ##     - name: ds-files
+  ##       mountPath: /var/lib/onlyoffice/documentserver/App_Data/cache/files
+  initContainers: []
+  ## converter.extraVolumes An array with extra volumes for the Converter Pod
+  ## Example:
+  ## extraVolumes:
+  ##   - name: my-volume
+  ##     configMap:
+  ##       name: my-cm
+  extraVolumes: []
+  ## Converter container image parameters
+  image:
+    ## converter.image.repository converter container image repository
+    ## For more information, see after the Parameters table
+    ## https://github.com/ONLYOFFICE/Kubernetes-Docs#4-parameters
+    repository: onlyoffice/docs-converter-de
+    ## converter.image.tag converter container image tag
+    tag: 8.3.3-1
+    ## converter.image.pullPolicy converter container image pull policy
+    pullPolicy: IfNotPresent
+  ## Configure a Security Context for the Converter container
+  containerSecurityContext:
+    ## converter.containerSecurityContext.enabled Enable security context for the Converter container
+    enabled: false
+    ## converter.containerSecurityContext.runAsUser User ID for the Converter container
+    runAsUser: 101
+    ## converter.containerSecurityContext.runAsGroup Group ID for the Converter container
+    runAsGroup: 101
+    ## converter.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+    runAsNonRoot: true
+    ## converter.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+    allowPrivilegeEscalation: false
+    ## converter.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Converter container
+    seccompProfile:
+      type: RuntimeDefault
+    ## converter.containerSecurityContext.capabilities Defines the privileges granted to the process
+    capabilities:
+      drop: ["ALL"]
+  ## converter.lifecycleHooks Defines the Converter container lifecycle hooks
+  ## ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+  ## It is used to trigger events to run at certain points in a container's lifecycle
+  ## There are two hooks that are exposed: `PostStart` and `PreStop`
+  ## Example:
+  ## lifecycleHooks:
+  ##   preStop:
+  ##     exec:
+  ##       command: ["/bin/sh", "-c", "sleep 25"]
+  lifecycleHooks: {}
+  ## converter container resource requests and limits
+  ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  ## converter.resources.requests The requested resources for the converter container
+  ## converter.resources.limits The resources limits for the converter container
+  resources:
+    ## Example:
+    ## requests:
+    ##   memory: "256Mi"
+    ##   cpu: "200m"
+    requests: {}
+    ## limits:
+    ##   memory: "2Gi"
+    ##   cpu: "1000m"
+    limits: {}
+  ## converter.extraEnvVars An array with extra env variables for the Converter container
+  ## Example:
+  ## extraEnvVars:
+  ##   - name: my_env
+  ##     value: "my_value"
+  extraEnvVars: []
+  ## converter.extraVolumeMounts An array with extra volume mounts for the Converter container
+  ## Example:
+  ## extraVolumeMounts:
+  ##   - name: my-volume
+  ##     mountPath: /my_dir/my_cm.txt
+  ##     subPath: my_cm.txt
+  extraVolumeMounts: []
+
+## Onlyoffice Docs Example StatefulSet parameters
+##
+example:
+  ## example.enabled Enables Example installation
+  enabled: false
+  ## example.dsUrl Onlyoffice Docs external address
+  ## It should be changed only if it is necessary to check the operation of the conversion in Example
+  ## E.g.
+  ## dsUrl: "http://<documentserver-address>/"
+  dsUrl: "/"
+  ## example.annotations Defines annotations that will be additionally added to Example StatefulSet
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## example.podAnnotations Map of annotations to add to the Example pod
+  podAnnotations:
+    rollme: "{{ randAlphaNum 5 | quote }}"
+  ## Update strategy used to replace old Pods by new ones. Allowed values: `RollingUpdate` or `OnDelete`
+  ## example.updateStrategy.type Example StatefulSet update strategy type
+  updateStrategy:
+    type: RollingUpdate
+  ## example.customPodAntiAffinity Prohibiting the scheduling of Example Pod relative to other Pods containing the specified labels on the same node
+  ## Example:
+  ## customPodAntiAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - docservice
+  ##     topologyKey: kubernetes.io/hostname
+  customPodAntiAffinity: {}
+  ## Pod affinity rules for Example Pod scheduling by nodes relative to other Pods
+  ## Pod affinity allow you to constrain which nodes Example Pod can be scheduled on based on the labels of Pods already running on that node
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ## Example:
+  ## podAffinity:
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##   - labelSelector:
+  ##       matchExpressions:
+  ##       - key: app
+  ##         operator: In
+  ##         values:
+  ##         - store
+  ##     topologyKey: topology.kubernetes.io/zone
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     podAffinityTerm:
+  ##       labelSelector:
+  ##         matchExpressions:
+  ##         - key: app
+  ##           operator: NotIn
+  ##           values:
+  ##           - database
+  ##       topologyKey: kubernetes.io/hostname
+  podAffinity: {}
+  ## Node affinity rules for Example Pod scheduling by nodes
+  ## Node affinity allow you to constrain which nodes Example Pod can be scheduled on based on node labels
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ## Example:
+  ## nodeAffinity:
+  ##   preferredDuringSchedulingIgnoredDuringExecution:
+  ##   - weight: 100
+  ##     preference:
+  ##       matchExpressions:
+  ##       - key: kubernetes.io/name
+  ##         operator: In
+  ##         values:
+  ##         - name1
+  ##         - name2
+  ##   requiredDuringSchedulingIgnoredDuringExecution:
+  ##     nodeSelectorTerms:
+  ##     - matchExpressions:
+  ##       - key: topology.kubernetes.io/zone
+  ##         operator: NotIn
+  ##         values:
+  ##         - zone1
+  ##         - zone2
+  nodeAffinity: {}
+  ## example.nodeSelector Node labels for Example Pods assignment
+  ## If set to, it takes priority over the `nodeSelector`
+  nodeSelector: {}
+  ## example.tolerations Tolerations for Example Pods assignment
+  ## If set to, it takes priority over the `tolerations`
+  tolerations: []
+  ## example.terminationGracePeriodSeconds The time to terminate gracefully during which the Example Pod will have the `Terminating` status
+  terminationGracePeriodSeconds: 30
+  ## example.hostAliases Adds additional entries to the hosts file in the Example container
+  ## ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  ## Example:
+  ## hostAliases:
+  ## - ip: "192.168.2.5"
+  ##   hostnames:
+  ##   - "foo.local"
+  hostAliases: []
+  ## example.extraVolumes An array with extra volumes for the Example Pod
+  ## Example:
+  ## extraVolumes:
+  ##   - name: my-volume
+  ##     configMap:
+  ##       name: my-cm
+  extraVolumes: []
+  ## Example container image parameters
+  image:
+    ## example.image.repository example container image name
+    repository: onlyoffice/docs-example
+    ## example.image.tag example container image tag
+    tag: 8.3.3-1
+    ## example.image.pullPolicy example container image pull policy
+    pullPolicy: IfNotPresent
+  ## Configure a Security Context for the Example container
+  containerSecurityContext:
+    ## example.containerSecurityContext.enabled Enable security context for the Example container
+    enabled: false
+    ## example.containerSecurityContext.runAsUser User ID for the Example container
+    runAsUser: 1001
+    ## example.containerSecurityContext.runAsGroup Group ID for the Example container
+    runAsGroup: 1001
+    ## example.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+    runAsNonRoot: true
+    ## example.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+    allowPrivilegeEscalation: false
+    ## example.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Example container
+    seccompProfile:
+      type: RuntimeDefault
+    ## example.containerSecurityContext.capabilities Defines the privileges granted to the process
+    capabilities:
+      drop: ["ALL"]
+  ## example.lifecycleHooks Defines the Example container lifecycle hooks
+  ## ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+  ## It is used to trigger events to run at certain points in a container's lifecycle
+  ## There are two hooks that are exposed: `PostStart` and `PreStop`
+  ## Example:
+  ## lifecycleHooks:
+  ##   preStop:
+  ##     exec:
+  ##       command: ["/bin/sh", "-c", "sleep 25"]
+  lifecycleHooks: {}
+  ## example.containerPorts.http example container port
+  containerPorts:
+    http: 3000
+  ## example container resource requests and limits
+  ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  ## example.resources.requests The requested resources for the example container
+  ## example.resources.limits The resources limits for the example container
+  resources:
+    ## Example:
+    ## requests:
+    ##   memory: "128Mi"
+    ##   cpu: "100m"
+    requests: {}
+    ## limits:
+    ##   memory: "128Mi"
+    ##   cpu: "250m"
+    limits: {}
+  ## example.extraEnvVars An array with extra env variables for the Example container
+  ## Example:
+  ## extraEnvVars:
+  ##   - name: my_env
+  ##     value: "my_value"
+  extraEnvVars: []
+  ## Example config for overriding default values
+  extraConf:
+    ## example.extraConf.configMap The name of the ConfigMap containing the json file that override the default values
+    configMap: ""
+    ## example.extraConf.filename The name of the json file that contains custom values
+    ## Must be the same as the `key` name in `example.extraConf.ConfigMap`
+    filename: local.json
+  ## example.extraVolumeMounts An array with extra volume mounts for the Example container
+  ## Example:
+  ## extraVolumeMounts:
+  ##   - name: my-volume
+  ##     mountPath: /my_dir/my_cm.txt
+  ##     subPath: my_cm.txt
+  extraVolumeMounts: []
+
+## Onlyoffice Docs ingress parameters
+##
+ingress:
+  ## ingress.enabled Enable the creation of an ingress for the ONLYOFFICE Docs
+  enabled: false
+  ## ingress.annotations Map of annotations to add to the Ingress
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+  # ingress.ingressClassName Used to reference the IngressClass that should be used to implement this Ingress
+  # ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource/
+  ingressClassName: nginx
+  ssl:
+    ## ingress.ssl.enabled Enable TLS for the ONLYOFFICE Docs ingress
+    enabled: false
+    ## ingress.ssl.secret Secret name for TLS to mount into the Ingress
+    ## Used only when `ingress.ssl.enabled=true
+    secret: tls
+  ## ingress.host Ingress hostname for the ONLYOFFICE Docs
+  host: ""
+  ## ingress.path Specifies the path where ONLYOFFICE Docs will be available
+  ## Example:
+  ## path: "/ds"
+  path: "/"
+
+## Grafana parameters
+## See more details about installing Grafana here:
+## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#using-grafana-to-visualize-metrics-optional
+grafana:
+  ## grafana.enabled Enable the installation of resources required for the visualization of metrics in Grafana
+  enabled: false
+  ## grafana.namespace The name of the namespace in which RBAC components and Grafana resources will be deployed
+  ## If not set, the name will be taken from `namespaceOverride` or .Release.Namespace
+  namespace: ""
+  ## grafana.ingress.enabled Enable the creation of an ingress for the Grafana
+  ## Used if you set `grafana.enabled` to `true` and want to use Nginx Ingress to access Grafana
+  ingress:
+    enabled: false
+    ## grafana.ingress.annotations Map of annotations to add to grafana Ingress
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: 100m
+  ## grafana.dashboard.enabled Enable the installation of ready-made Grafana dashboards
+  ## Used if you set `grafana.enabled` to `true`
+  dashboard:
+    enabled: false
+
+## Onlyoffice Docs jobs parameters
+##
+## Job by install has a pre-install hook and executes before any resources are created in Kubernetes
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He creates tables in the database `connections.dbName` for Onlyoffice Docs
+install:
+  job:
+    ## install.job.enabled Enable the execution of job pre-install before installing ONLYOFFICE Docs
+    enabled: true
+    ## install.job.annotations Defines annotations that will be additionally added to pre-install Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## install.job.podAnnotations Map of annotations to add to the pre-install Pod
+    podAnnotations: {}
+    ## install.job.customPodAntiAffinity Prohibiting the scheduling of pre-install Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for pre-install Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes pre-install Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for pre-install Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes pre-install Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## install.job.nodeSelector Node labels for pre-install Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## install.job.tolerations Tolerations for pre-install Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## install.job.image.repository Job by pre-install ONLYOFFICE Docs image repository
+      repository: onlyoffice/docs-utils
+      ## install.job.image.tag Job by pre-install ONLYOFFICE Docs image tag
+      tag: 8.3.3-1
+      ## install.job.image.pullPolicy Job by pre-install ONLYOFFICE Docs image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the pre-install container
+    containerSecurityContext:
+      ## install.job.containerSecurityContext.enabled Enable security context for the pre-install container
+      enabled: false
+      ## install.job.containerSecurityContext.runAsUser User ID for the pre-install container
+      runAsUser: 101
+      ## install.job.containerSecurityContext.runAsGroup Group ID for the pre-install container
+      runAsGroup: 101
+      ## install.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## install.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## install.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the pre-install container
+      seccompProfile:
+        type: RuntimeDefault
+      ## install.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job pre-install container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## install.job.resources.requests The requested resources for the job pre-install container
+    ## install.job.resources.limits The resources limits for the job pre-install container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "2Gi"
+      ##   cpu: "1000m"
+      limits: {}
+  existingConfigmap:
+    tblCreate:
+      ## install.existingConfigmap.tblCreate.name The name of the existing ConfigMap that contains the sql file for craeting tables from the database
+      ## Used if `privateCluster` is set to `true`
+      ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
+      name: init-db-scripts
+      ## install.existingConfigmap.tblCreate.keyName The name of the sql file containing instructions for creating tables from the database
+      ## Must be the same as the `key` name in `install.existingConfigmap.tblCreate.name`
+      keyName: createdb.sql
+    ## install.existingConfigmap.initdb The name of the existing ConfigMap that contains the initdb script
+    ## If set, the default configmap will not be created and the two previous parameters are ignored
+    ## Must contain a key `initdb.sh`
+    initdb: ""
+## Job by upgrade has a pre-upgrade hook and executes on an upgrade request before all of the release's resources have been upgraded
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He stops the ONLYOFFICE Docs and recreates the tables in the database `connections.dbName`
+upgrade:
+  job:
+    ## upgrade.job.enabled Enable the execution of job pre-upgrade before upgrading ONLYOFFICE Docs
+    enabled: true
+    ## upgrade.job.annotations Defines annotations that will be additionally added to pre-upgrade Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## upgrade.job.podAnnotations Map of annotations to add to the pre-upgrade Pod
+    podAnnotations: {}
+    ## upgrade.job.customPodAntiAffinity Prohibiting the scheduling of pre-upgrade Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for pre-upgrade Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes pre-upgrade Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for pre-upgrade Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes pre-upgrade Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## upgrade.job.nodeSelector Node labels for pre-upgrade Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## upgrade.job.tolerations Tolerations for pre-upgrade Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## upgrade.job.image.repository Job by upgrade image repository
+      repository: onlyoffice/docs-utils
+      ## upgrade.job.image.tag Job by upgrade image tag
+      tag: 8.3.3-1
+      ## upgrade.job.image.pullPolicy Job by upgrade image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the pre-upgrade container
+    containerSecurityContext:
+      ## upgrade.job.containerSecurityContext.enabled Enable security context for the pre-upgrade container
+      enabled: false
+      ## upgrade.job.containerSecurityContext.runAsUser User ID for the pre-upgrade container
+      runAsUser: 101
+      ## upgrade.job.containerSecurityContext.runAsGroup Group ID for the pre-upgrade container
+      runAsGroup: 101
+      ## upgrade.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## upgrade.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## upgrade.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the pre-upgrade container
+      seccompProfile:
+        type: RuntimeDefault
+      ## upgrade.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job pre-upgrade container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## upgrade.job.resources.requests The requested resources for the job pre-upgrade container
+    ## upgrade.job.resources.limits The resources limits for the job pre-upgrade container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "2Gi"
+      ##   cpu: "1000m"
+      limits: {}
+  existingConfigmap:
+    tblRemove:
+      ## upgrade.existingConfigmap.tblRemove.name The name of the existing ConfigMap that contains the sql file for deleting tables from the database
+      ## Used if `privateCluster` is set to `true`
+      ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
+      name: remove-db-scripts
+      ## upgrade.existingConfigmap.tblRemove.keyName The name of the sql file containing instructions for deleting tables from the database
+      ## Must be the same as the `key` name in `upgrade.existingConfigmap.tblRemove.name`
+      keyName: removetbl.sql
+    tblCreate:
+      ## upgrade.existingConfigmap.tblCreate.name The name of the existing ConfigMap that contains the sql file for craeting tables from the database
+      ## Used if `privateCluster` is set to `true`
+      ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
+      name: init-db-scripts
+      ## upgrade.existingConfigmap.tblCreate.keyName The name of the sql file containing instructions for creating tables from the database
+      ## Must be the same as the `key` name in `upgrade.existingConfigmap.tblCreate.name`
+      keyName: createdb.sql
+    ## upgrade.existingConfigmap.dsStop The name of the existing ConfigMap that contains the ONLYOFFICE Docs upgrade script
+    ## If set, the default configmap will not be created and the four previous parameters are ignored
+    ## Must contain a key `stop.sh`
+    dsStop: ""
+## Job by rollback has a pre-rollback hook and executes on an rollback request before all of the release's resources have been rollback
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He stops the ONLYOFFICE Docs, clears the directory ".../cache/files/" and recreates the tables in the database `connections.dbName`
+rollback:
+  job:
+    ## rollback.job.enabled Enable the execution of job pre-rollback before rolling back ONLYOFFICE Docs
+    enabled: true
+    ## rollback.job.annotations Defines annotations that will be additionally added to pre-rollback Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## rollback.job.podAnnotations Map of annotations to add to the pre-rollback Pod
+    podAnnotations: {}
+    ## rollback.job.customPodAntiAffinity Prohibiting the scheduling of pre-rollback Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for pre-rollback Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes pre-rollback Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for pre-rollback Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes pre-rollback Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## rollback.job.nodeSelector Node labels for pre-rollback Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## rollback.job.tolerations Tolerations for pre-rollback Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## rollback.job.image.repository Job by rollback image repository
+      repository: onlyoffice/docs-utils
+      ## rollback.job.image.tag Job by rollback image tag
+      tag: 8.3.3-1
+      ## rollback.job.image.pullPolicy Job by rollback image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the pre-rollback container
+    containerSecurityContext:
+      ## rollback.job.containerSecurityContext.enabled Enable security context for the pre-rollback container
+      enabled: false
+      ## rollback.job.containerSecurityContext.runAsUser User ID for the pre-rollback container
+      runAsUser: 101
+      ## rollback.job.containerSecurityContext.runAsGroup Group ID for the pre-rollback container
+      runAsGroup: 101
+      ## rollback.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## rollback.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## rollback.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the pre-rollback container
+      seccompProfile:
+        type: RuntimeDefault
+      ## rollback.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job pre-rollback container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## rollback.job.resources.requests The requested resources for the job pre-rollback container
+    ## rollback.job.resources.limits The resources limits for the job pre-rollback container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "2Gi"
+      ##   cpu: "1000m"
+      limits: {}
+  existingConfigmap:
+    tblRemove:
+      ## rollback.existingConfigmap.tblRemove.name The name of the existing ConfigMap that contains the sql file for deleting tables from the database
+      ## Used if `privateCluster` is set to `true`
+      ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
+      name: remove-db-scripts
+      ## rollback.existingConfigmap.tblRemove.keyName The name of the sql file containing instructions for deleting tables from the database
+      ## Must be the same as the `key` name in `rollback.existingConfigmap.tblRemove.name`
+      keyName: removetbl.sql
+    tblCreate:
+      ## rollback.existingConfigmap.tblCreate.name The name of the existing ConfigMap that contains the sql file for craeting tables from the database
+      ## Used if `privateCluster` is set to `true`
+      ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
+      name: init-db-scripts
+      ## rollback.existingConfigmap.tblCreate.keyName The name of the sql file containing instructions for creating tables from the database
+      ## Must be the same as the `key` name in `rollback.existingConfigmap.tblCreate.name`
+      keyName: createdb.sql
+    ## rollback.existingConfigmap.dsStop The name of the existing ConfigMap that contains the ONLYOFFICE Docs rollback script
+    ## If set, the default configmap will not be created and the four previous parameters are ignored
+    ## Must contain a key `stop.sh`
+    dsStop: ""
+## Job by delete has a pre-delete hook and executes on a deletion request before all of the release's resources have been deleted
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He stops the ONLYOFFICE Docs, clears the directory ".../cache/files/" and deletes tables in the database `connections.dbName`
+delete:
+  job:
+    ## delete.job.enabled Enable the execution of job pre-delete before deleting ONLYOFFICE Docs
+    enabled: true
+    ## delete.job.annotations Defines annotations that will be additionally added to pre-delete Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## delete.job.podAnnotations Map of annotations to add to the pre-delete Pod
+    podAnnotations: {}
+    ## delete.job.customPodAntiAffinity Prohibiting the scheduling of pre-delete Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for pre-delete Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes pre-delete Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for Rollback Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes pre-delete Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## delete.job.nodeSelector Node labels for pre-delete Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## delete.job.tolerations Tolerations for pre-delete Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## delete.job.image.repository Job by delete image repository
+      repository: onlyoffice/docs-utils
+      ## delete.job.image.tag Job by delete image tag
+      tag: 8.3.3-1
+      ## delete.job.image.pullPolicy Job by delete image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the pre-delete container
+    containerSecurityContext:
+      ## delete.job.containerSecurityContext.enabled Enable security context for the pre-delete container
+      enabled: false
+      ## delete.job.containerSecurityContext.runAsUser User ID for the pre-delete container
+      runAsUser: 101
+      ## delete.job.containerSecurityContext.runAsGroup Group ID for the pre-delete container
+      runAsGroup: 101
+      ## delete.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## delete.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## delete.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the pre-delete container
+      seccompProfile:
+        type: RuntimeDefault
+      ## delete.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job pre-delete container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## delete.job.resources.requests The requested resources for the job pre-delete container
+    ## delete.job.resources.limits The resources limits for the job pre-delete container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "2Gi"
+      ##   cpu: "1000m"
+      limits: {}
+  existingConfigmap:
+    tblRemove:
+      ## delete.existingConfigmap.tblRemove.name The name of the existing ConfigMap that contains the sql file for deleting tables from the database
+      ## Used if `privateCluster` is set to `true`
+      ## ref: https://github.com/ONLYOFFICE/Kubernetes-Docs#11-run-jobs-in-a-private-k8s-cluster-optional
+      name: remove-db-scripts
+      ## delete.existingConfigmap.tblRemove.keyName The name of the sql file containing instructions for deleting tables from the database
+      ## Must be the same as the `key` name in `delete.existingConfigmap.tblRemove.name`
+      keyName: removetbl.sql
+    ## delete.existingConfigmap.dsStop The name of the existing ConfigMap that contains the ONLYOFFICE Docs delete script
+    ## If set, the default configmap will not be created and the two previous parameters are ignored
+    ## Must contain a key `stop.sh`
+    dsStop: ""
+## Job by Clear Cache has a post-upgrade hook executes after any resources have been upgraded in Kubernetes
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He clears the Cache directory
+clearCache:
+  job:
+    ## clearCache.job.enabled Enable the execution of job Clear Cache after upgrading ONLYOFFICE Docs
+    enabled: true
+    ## clearCache.job.annotations Defines annotations that will be additionally added to Clear Cache Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## clearCache.job.podAnnotations Map of annotations to add to the Clear Cache Pod
+    podAnnotations: {}
+    ## clearCache.job.customPodAntiAffinity Prohibiting the scheduling of Clear Cache Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for Clear Cache Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes Clear Cache Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for Clear Cache Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes Clear Cache Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## clearCache.job.nodeSelector Node labels for Clear Cache Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## clearCache.job.tolerations Tolerations for Clear Cache Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## clearCache.job.image.repository Job by Clear Cache ONLYOFFICE Docs image repository
+      repository: onlyoffice/docs-utils
+      ## clearCache.job.image.tag Job by Clear Cache ONLYOFFICE Docs image tag
+      tag: 8.3.3-1
+      ## clearCache.job.image.pullPolicy Job by Clear Cache ONLYOFFICE Docs image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the Clear Cache container
+    containerSecurityContext:
+      ## clearCache.job.containerSecurityContext.enabled Enable security context for the Clear Cache container
+      enabled: false
+      ## clearCache.job.containerSecurityContext.runAsUser User ID for the Clear Cache container
+      runAsUser: 101
+      ## clearCache.job.containerSecurityContext.runAsGroup Group ID for the Clear Cache container
+      runAsGroup: 101
+      ## clearCache.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## clearCache.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## clearCache.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Clear Cache container
+      seccompProfile:
+        type: RuntimeDefault
+      ## clearCache.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job Clear Cache container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## clearCache.job.resources.requests The requested resources for the job Clear Cache container
+    ## clearCache.job.resources.limits The resources limits for the job Clear Cache container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "2Gi"
+      ##   cpu: "1000m"
+      limits: {}
+  existingConfigmap:
+    ## clearCache.existingConfigmap.name The name of the existing ConfigMap that contains the clears the Cache directory custom script
+    ## If set, the default configmap will not be created
+    name: ""
+    ## clearCache.existingConfigmap.keyName The name of the script containing instructions for clears the Cache directory
+    ## Must be the same as the `key` name in `clearCache.existingConfigmap.name` if a custom script is used
+    keyName: clearCache.sh
+## Job by Grafana Dashboard has post-install and post-upgrade hooks and executes after any resources are created in Kubernetes
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He creates Config Maps containing Grafana dashboards
+## It is executed if `grafana.enabled` and `grafana.dashboard.enabled` are set to `true`
+grafanaDashboard:
+  job:
+    ## grafanaDashboard.job.annotations Defines annotations that will be additionally added to Grafana Dashboard Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## grafanaDashboard.job.podAnnotations Map of annotations to add to the Grafana Dashboard Pod
+    podAnnotations: {}
+    ## grafanaDashboard.job.customPodAntiAffinity Prohibiting the scheduling of Grafana Dashboard Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for Grafana Dashboard Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes Grafana Dashboard Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for Grafana Dashboard Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes Grafana Dashboard Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## grafanaDashboard.job.nodeSelector Node labels for Grafana Dashboard Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## grafanaDashboard.job.tolerations Tolerations for Grafana Dashboard Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## grafanaDashboard.job.image.repository Job by Grafana Dashboard ONLYOFFICE Docs image repository
+      repository: onlyoffice/docs-utils
+      ## grafanaDashboard.job.image.tag Job by Grafana Dashboard ONLYOFFICE Docs image tag
+      tag: 8.3.3-1
+      ## grafanaDashboard.job.image.pullPolicy Job by Grafana Dashboard ONLYOFFICE Docs image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the Grafana Dashboard container
+    containerSecurityContext:
+      ## grafanaDashboard.job.containerSecurityContext.enabled Enable security context for the Grafana Dashboard container
+      enabled: false
+      ## grafanaDashboard.job.containerSecurityContext.runAsUser User ID for the Grafana Dashboard container
+      runAsUser: 101
+      ## grafanaDashboard.job.containerSecurityContext.runAsGroup Group ID for the Grafana Dashboard container
+      runAsGroup: 101
+      ## grafanaDashboard.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## grafanaDashboard.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## grafanaDashboard.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Grafana Dashboard container
+      seccompProfile:
+        type: RuntimeDefault
+      ## grafanaDashboard.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job Grafana Dashboard container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## grafanaDashboard.job.resources.requests The requested resources for the job Grafana Dashboard container
+    ## grafanaDashboard.job.resources.limits The resources limits for the job Grafana Dashboard container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "1Gi"
+      ##   cpu: "1000m"
+      limits: {}
+## Job by Wopi Keys Generation has pre-install and pre-upgrade hooks and executes before any resources are created in Kubernetes
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He generates WOPI keys and creates a secret from them
+## It is executed if `wopi.enabled` and `wopi.keys.generation` are set to `true`
+wopiKeysGeneration:
+  job:
+    ## wopiKeysGeneration.job.annotations Defines annotations that will be additionally added to Wopi Keys Generation Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## wopiKeysGeneration.job.podAnnotations Map of annotations to add to the Wopi Keys Generation Pod
+    podAnnotations: {}
+    ## wopiKeysGeneration.job.customPodAntiAffinity Prohibiting the scheduling of Wopi Keys Generation Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for Wopi Keys Generation Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes Wopi Keys Generation Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for Wopi Keys Generation Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes Wopi Keys Generation Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## wopiKeysGeneration.job.nodeSelector Node labels for Wopi Keys Generation Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## wopiKeysGeneration.job.tolerations Tolerations for Wopi Keys Generation Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## wopiKeysGeneration.job.image.repository Job by Wopi Keys Generation ONLYOFFICE Docs image repository
+      repository: onlyoffice/docs-utils
+      ## wopiKeysGeneration.job.image.tag Job by Wopi Keys Generation ONLYOFFICE Docs image tag
+      tag: 8.3.3-1
+      ## wopiKeysGeneration.job.image.pullPolicy Job by Wopi Keys Generation ONLYOFFICE Docs image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the Wopi Keys Generation container
+    containerSecurityContext:
+      ## wopiKeysGeneration.job.containerSecurityContext.enabled Enable security context for the Wopi Keys Generation container
+      enabled: false
+      ## wopiKeysGeneration.job.containerSecurityContext.runAsUser User ID for the Wopi Keys Generation container
+      runAsUser: 101
+      ## wopiKeysGeneration.job.containerSecurityContext.runAsGroup Group ID for the Wopi Keys Generation container
+      runAsGroup: 101
+      ## wopiKeysGeneration.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## wopiKeysGeneration.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## wopiKeysGeneration.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Wopi Keys Generation container
+      seccompProfile:
+        type: RuntimeDefault
+      ## wopiKeysGeneration.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job Wopi Keys Generation container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## wopiKeysGeneration.job.resources.requests The requested resources for the job Wopi Keys Generation container
+    ## wopiKeysGeneration.job.resources.limits The resources limits for the job Wopi Keys Generation container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "1Gi"
+      ##   cpu: "1000m"
+      limits: {}
+## Job by Wopi Keys Deletion has a pre-delete hook and executes on a deletion request before all of the release's resources have been deleted
+## ref: https://helm.sh/docs/topics/charts_hooks/#the-available-hooks
+## He removes the WOPI secrets generated automatically
+## It is executed if `wopi.enabled`, `wopi.keys.generation` and `wopiKeysDeletion.job.enabled` are set to `true`
+wopiKeysDeletion:
+  job:
+    ## wopiKeysDeletion.job.enabled Enable the execution of Wopi Keys Deletion job before deleting ONLYOFFICE Docs
+    enabled: true
+    ## wopiKeysDeletion.job.annotations Defines annotations that will be additionally added to Wopi Keys Deletion Job
+    ## If set to, it takes priority over the `commonAnnotations`
+    ## You can also use `tpl` as the value for the key
+    annotations: {}
+    ## wopiKeysDeletion.job.podAnnotations Map of annotations to add to the Wopi Keys Deletion Pod
+    podAnnotations: {}
+    ## wopiKeysDeletion.job.customPodAntiAffinity Prohibiting the scheduling of Wopi Keys Deletion Job Pod relative to other Pods containing the specified labels on the same node
+    customPodAntiAffinity: {}
+    ## Pod affinity rules for Wopi Keys Deletion Job Pod scheduling by nodes relative to other Pods
+    ## Pod affinity allow you to constrain which nodes Wopi Keys Deletion Job Pod can be scheduled on based on the labels of Pods already running on that node
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+    podAffinity: {}
+    ## Node affinity rules for Wopi Keys Deletion Job Pod scheduling by nodes
+    ## Node affinity allow you to constrain which nodes Wopi Keys Deletion Job Pod can be scheduled on based on node labels
+    ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+    nodeAffinity: {}
+    ## wopiKeysDeletion.job.nodeSelector Node labels for Wopi Keys Deletion Job Pod assignment
+    ## If set to, it takes priority over the `nodeSelector`
+    nodeSelector: {}
+    ## wopiKeysDeletion.job.tolerations Tolerations for Wopi Keys Deletion Job Pod assignment
+    ## If set to, it takes priority over the `tolerations`
+    tolerations: []
+    image:
+      ## wopiKeysDeletion.job.image.repository Job by Wopi Keys Deletion ONLYOFFICE Docs image repository
+      repository: onlyoffice/docs-utils
+      ## wopiKeysDeletion.job.image.tag Job by Wopi Keys Deletion ONLYOFFICE Docs image tag
+      tag: 8.3.3-1
+      ## wopiKeysDeletion.job.image.pullPolicy Job by Wopi Keys Deletion ONLYOFFICE Docs image pull policy
+      pullPolicy: IfNotPresent
+    ## Configure a Security Context for the Wopi Keys Deletion container
+    containerSecurityContext:
+      ## wopiKeysDeletion.job.containerSecurityContext.enabled Enable security context for the Wopi Keys Deletion container
+      enabled: false
+      ## wopiKeysDeletion.job.containerSecurityContext.runAsUser User ID for the Wopi Keys Deletion container
+      runAsUser: 101
+      ## wopiKeysDeletion.job.containerSecurityContext.runAsGroup Group ID for the Wopi Keys Deletion container
+      runAsGroup: 101
+      ## wopiKeysDeletion.job.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+      runAsNonRoot: true
+      ## wopiKeysDeletion.job.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+      allowPrivilegeEscalation: false
+      ## wopiKeysDeletion.job.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Wopi Keys Deletion container
+      seccompProfile:
+        type: RuntimeDefault
+      ## wopiKeysDeletion.job.containerSecurityContext.capabilities Defines the privileges granted to the process
+      capabilities:
+        drop: ["ALL"]
+    ## Job Wopi Keys Deletion container resource requests and limits
+    ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    ## wopiKeysDeletion.job.resources.requests The requested resources for the job Wopi Keys Deletion container
+    ## wopiKeysDeletion.job.resources.limits The resources limits for the job Wopi Keys Deletion container
+    resources:
+      ## Example:
+      ## requests:
+      ##   memory: "256Mi"
+      ##   cpu: "200m"
+      requests: {}
+      ## limits:
+      ##   memory: "1Gi"
+      ##   cpu: "1000m"
+      limits: {}
+
+## Onlyoffice Docs tests parameters
+tests:
+  ## tests.enabled Enable the resources creation necessary for ONLYOFFICE Docs launch testing and connected dependencies availability testing
+  ## These resources will be used when running the `helm test` command
+  enabled: true
+  ## tests.annotations Defines annotations that will be additionally added to Test Pod
+  ## If set to, it takes priority over the `commonAnnotations`
+  ## You can also use `tpl` as the value for the key
+  annotations: {}
+  ## tests.customPodAntiAffinity Prohibiting the scheduling of Test Pod relative to other Pods containing the specified labels on the same node
+  customPodAntiAffinity: {}
+  ## Pod affinity rules for Test Pod scheduling by nodes relative to other Pods
+  ## Pod affinity allow you to constrain which nodes Test Pod can be scheduled on based on the labels of Pods already running on that node
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  podAffinity: {}
+  ## Node affinity rules for Test Pod scheduling by nodes
+  ## Node affinity allow you to constrain which nodes Test Pod can be scheduled on based on node labels
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  nodeAffinity: {}
+  ## tests.nodeSelector Node labels for Test Pod assignment
+  ## If set to, it takes priority over the `nodeSelector`
+  nodeSelector: {}
+  ## tests.tolerations Tolerations for Test Pod assignment
+  ## If set to, it takes priority over the `tolerations`
+  tolerations: []
+  ## Test container image parameters
+  image:
+    ## tests.image.repository test container image name
+    repository: onlyoffice/docs-utils
+    ## tests.image.tag test container image tag
+    tag: 8.3.3-1
+    ## tests.image.pullPolicy test container image pull policy
+    pullPolicy: IfNotPresent
+  ## Configure a Security Context for the Test container
+  containerSecurityContext:
+    ## tests.containerSecurityContext.enabled Enable security context for the Test container
+    enabled: false
+    ## tests.containerSecurityContext.runAsUser User ID for the Test container
+    runAsUser: 101
+    ## tests.containerSecurityContext.runAsGroup Group ID for the Test container
+    runAsGroup: 101
+    ## tests.containerSecurityContext.runAsNonRoot Require that the container will run with a user with UID other than 0
+    runAsNonRoot: true
+    ## tests.containerSecurityContext.allowPrivilegeEscalation Controls whether a process can gain more privileges than its parent process
+    allowPrivilegeEscalation: false
+    ## tests.containerSecurityContext.seccompProfile Defines the Seccomp profile for the Test container
+    seccompProfile:
+      type: RuntimeDefault
+    ## tests.containerSecurityContext.capabilities Defines the privileges granted to the process
+    capabilities:
+      drop: ["ALL"]
+  ## test container resource requests and limits
+  ## ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+  ## tests.resources.requests The requested resources for the test container
+  ## tests.resources.limits The resources limits for the test container
+  resources:
+    ## Example:
+    ## requests:
+    ##   memory: "256Mi"
+    ##   cpu: "200m"
+    requests: {}
+    ## limits:
+    ##   memory: "512Mi"
+    ##   cpu: "1000m"
+    limits: {}

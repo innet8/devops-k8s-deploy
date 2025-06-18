@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onlyoffice
+type: Opaque
+stringData:
+  password: "q6KY5lxgMevgpJb"
