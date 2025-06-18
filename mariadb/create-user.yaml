@@ -20,3 +20,4 @@ spec:
   cleanupPolicy: Delete
   requeueInterval: 30s
   retryInterval: 5s
+  database: translations
