@@ -128,19 +128,18 @@ def make_static_tmp_dir():
             pass
         else:
             raise
-
 def generate_flex_message(detail):
     result = {
         "time_range": detail.get("time_range"),
         "summary": detail.get("summary"),
-        "gift_records": detail.get("gift"),
-        "cancel_records": detail.get("cancel")
+        "gift_records": detail.get("gift_records"),
+        "cancel_records": detail.get("cancel_records")
     }
 
     def build_records_section(records, title, color):
         if not records:
             return []
-
+        # print(f"[DEBUG] Building section: {title} | {len(records)} records")
         section = [
             {
                 "type": "text",
@@ -149,26 +148,18 @@ def generate_flex_message(detail):
                 "size": "md",
                 "color": color,
                 "margin": "md"
-            },
-            {
-                "type": "box",
-                "layout": "vertical",
-                "margin": "sm",
-                "spacing": "sm",
-                "contents": []
             }
         ]
 
-        contents = section[1]["contents"]
         for i, rec in enumerate(records):
-            contents.append({
+            section.append({
                 "type": "text",
                 "text": rec,
                 "wrap": True,
                 "size": "sm"
             })
             if i < len(records) - 1:
-                contents.append({
+                section.append({
                     "type": "separator",
                     "margin": "md"
                 })
@@ -185,13 +176,14 @@ def generate_flex_message(detail):
         },
         {
             "type": "text",
-            "text": f"时间范围: {result['time_range']}",
+            "text": f"{result['time_range']}",
             "size": "sm",
+            "wrap": True,
             "color": "#666666"
         },
         {
             "type": "text",
-            "text": f"{result['summary']}",
+            "text": result['summary'],
             "size": "sm",
             "color": "#666666",
             "margin": "sm"
@@ -201,16 +193,22 @@ def generate_flex_message(detail):
             "margin": "md"
         }
     ]
+    print(result["gift_records"])
+    # 添加赠菜记录
+    gift_section = build_records_section(result["gift_records"], "🎁 赠菜记录", "#1DB446")
+    if gift_section:
+        body_contents += gift_section
+        body_contents.append({
+            "type": "separator",
+            "margin": "lg"
+        })
 
-    # 添加赠菜和退菜记录
-    body_contents += build_records_section(result["gift_records"], "🎁 赠菜记录", "#1DB446")
-    body_contents.append({
-        "type": "separator",
-        "margin": "lg"
-    })
-    body_contents += build_records_section(result["cancel_records"], "🔁 退菜记录", "#FF6B6B")
+    # 添加退菜记录
+    cancel_section = build_records_section(result["cancel_records"], "🔁 退菜记录", "#FF6B6B")
+    if cancel_section:
+        body_contents += cancel_section
 
-    # 最终 Bubble
+    # 生成完整 bubble
     flex_message = {
         "type": "bubble",
         "size": "mega",
