@@ -17,4 +17,4 @@ helm install redis bitnami/redis \
 数据库onlyoffice
 用户onlyoffice
 
-helm install documentserver -f values.yaml onlyoffice/docs
+helm upgrade --install documentserver -f value.yaml onlyoffice/docs

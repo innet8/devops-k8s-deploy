@@ -191,7 +191,7 @@ persistence:
 podSecurityContext:
   ## podSecurityContext.enabled Enable security context for the pods
   ## If set to true, `podSecurityContext` is enabled for all resources describing the podTemplate
-  enabled: false
+  enabled: true
   ## Converter Deployment podSecurityContext parameters
   converter:
     ## podSecurityContext.converter.fsGroup Defines the Group ID to which the owner and permissions for all files in volumes are changed when mounted in the Converter Pod

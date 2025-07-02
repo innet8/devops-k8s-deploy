@@ -128,13 +128,145 @@ def make_static_tmp_dir():
             pass
         else:
             raise
-def generate_flex_message(detail):
+
+
+# 营业数据
+def business_data_template(shop_name, body):
+    business_data = {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "text",
+                    "text": shop_name,
+                    "weight": "bold",
+                    "size": "xl",
+                    "margin": "md",
+                },
+                {"type": "separator", "margin": "xl"},
+                {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "margin": "xxl",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "总销售额：",
+                                    "size": "sm",
+                                    "color": "#555555",
+                                },
+                                {
+                                    "type": "text",
+                                    "text": body.get("receivable_price") + "",
+                                    "size": "sm",
+                                    "color": "#111111",
+                                    "align": "end",
+                                },
+                            ],
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "实收金额：",
+                                    "size": "sm",
+                                    "color": "#555555",
+                                },
+                                {
+                                    "type": "text",
+                                    "text": body.get("received_price") + "",
+                                    "size": "sm",
+                                    "color": "#111111",
+                                    "align": "end",
+                                },
+                            ],
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "营业收入：",
+                                    "size": "sm",
+                                    "color": "#555555",
+                                },
+                                {
+                                    "type": "text",
+                                    "text": body.get("business_price") + "",
+                                    "size": "sm",
+                                    "color": "#111111",
+                                    "align": "end",
+                                },
+                            ],
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "size": "sm",
+                                    "color": "#555555",
+                                    "text": "总订单数：",
+                                },
+                                {
+                                    "type": "text",
+                                    "text": body.get("total_order_num") + "",
+                                    "size": "sm",
+                                    "color": "#111111",
+                                    "align": "end",
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {"type": "separator", "margin": "xxl"},
+                {
+                    "type": "box",
+                    "layout": "horizontal",
+                    "margin": "md",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": "时间：",
+                            "size": "xs",
+                            "color": "#aaaaaa",
+                            "flex": 0,
+                        },
+                        {
+                            "type": "text",
+                            "text": body.get("time_range"),
+                            "color": "#aaaaaa",
+                            "size": "xs",
+                            "align": "end",
+                        },
+                    ],
+                },
+            ],
+        },
+        "styles": {"footer": {"separator": True}},
+    }
+    return business_data
+
+
+def gift_cancel_template(shop_name, detail):
     result = {
         "time_range": detail.get("time_range"),
         "summary": detail.get("summary"),
         "gift_records": detail.get("gift_records"),
-        "cancel_records": detail.get("cancel_records")
+        "cancel_records": detail.get("cancel_records"),
     }
+    shop = shop_name
 
     def build_records_section(records, title, color):
         if not records:
@@ -147,64 +279,54 @@ def generate_flex_message(detail):
                 "weight": "bold",
                 "size": "md",
                 "color": color,
-                "margin": "md"
+                "margin": "md",
             }
         ]
 
         for i, rec in enumerate(records):
-            section.append({
-                "type": "text",
-                "text": rec,
-                "wrap": True,
-                "size": "sm"
-            })
+            section.append({"type": "text", "text": rec, "wrap": True, "size": "sm"})
             if i < len(records) - 1:
-                section.append({
-                    "type": "separator",
-                    "margin": "md"
-                })
+                section.append({"type": "separator", "margin": "md"})
 
         return section
 
     body_contents = [
         {
             "type": "text",
-            "text": "中国名堂赠退菜记录",
+            "text": f"{shop}赠退菜记录",
             "weight": "bold",
             "size": "xl",
-            "color": "#222222"
+            "color": "#222222",
         },
         {
             "type": "text",
             "text": f"{result['time_range']}",
             "size": "sm",
             "wrap": True,
-            "color": "#666666"
+            "color": "#666666",
         },
         {
             "type": "text",
-            "text": result['summary'],
+            "text": result["summary"],
             "size": "sm",
             "color": "#666666",
-            "margin": "sm"
+            "margin": "sm",
         },
-        {
-            "type": "separator",
-            "margin": "md"
-        }
+        {"type": "separator", "margin": "md"},
     ]
     print(result["gift_records"])
     # 添加赠菜记录
-    gift_section = build_records_section(result["gift_records"], "🎁 赠菜记录", "#1DB446")
+    gift_section = build_records_section(
+        result["gift_records"], "🎁 赠菜记录", "#1DB446"
+    )
     if gift_section:
         body_contents += gift_section
-        body_contents.append({
-            "type": "separator",
-            "margin": "lg"
-        })
+        body_contents.append({"type": "separator", "margin": "lg"})
 
     # 添加退菜记录
-    cancel_section = build_records_section(result["cancel_records"], "🔁 退菜记录", "#FF6B6B")
+    cancel_section = build_records_section(
+        result["cancel_records"], "🔁 退菜记录", "#FF6B6B"
+    )
     if cancel_section:
         body_contents += cancel_section
 
@@ -216,11 +338,12 @@ def generate_flex_message(detail):
             "type": "box",
             "layout": "vertical",
             "spacing": "md",
-            "contents": body_contents
-        }
+            "contents": body_contents,
+        },
     }
 
     return flex_message
+
 
 @app.route("/callback", methods=["POST"])
 def callback():
@@ -247,139 +370,45 @@ def pushMessage():
     # get request body as text
     body = request.form.get("res")
     user_id = request.form.get("user_id")
-    shops = request.form.get("shops")
+    shop = request.form.get("shop")
+    action = request.form.get("action", "default")
     app.logger.info(user_id + " Request body: " + body)
     bubble = None
     # handle webhook body
-    if shops == '神戸牛らーめん麓の宮营业数据：':
+    if action == "gift_cancel":
+        detail = json.loads(body)
+        bubble = gift_cancel_template(shop, detail)
+    elif action == "business_data":
+        body = json.loads(body)
+        bubble = business_data_template(shop, body)
+    elif action == "quota":
         body = json.loads(body)
         bubble = {
             "type": "bubble",
             "body": {
                 "type": "box",
-                "layout": "vertical",
+                "layout": "horizontal",
                 "contents": [
                     {
                         "type": "text",
-                        "text": "神戸牛らーめん麓の宮",
+                        "text": f"{shop} 当前剩余短信额度:",
                         "weight": "bold",
-                        "size": "xl",
-                        "margin": "md",
+                        "margin": "md"
                     },
-                    {"type": "separator", "margin": "xl"},
                     {
-                        "type": "box",
-                        "layout": "vertical",
-                        "spacing": "sm",
-                        "contents": [
-                            {
-                                "type": "box",
-                                "layout": "horizontal",
-                                "margin": "xxl",
-                                "contents": [
-                                    {
-                                        "type": "text",
-                                        "text": "总销售额：",
-                                        "size": "sm",
-                                        "color": "#555555",
-                                    },
-                                    {
-                                        "type": "text",
-                                        "text": body.get("总销售额") + "",
-                                        "size": "sm",
-                                        "color": "#111111",
-                                        "align": "end",
-                                    },
-                                ],
-                            },
-                            {
-                                "type": "box",
-                                "layout": "horizontal",
-                                "contents": [
-                                    {
-                                        "type": "text",
-                                        "text": "实收金额：",
-                                        "size": "sm",
-                                        "color": "#555555",
-                                    },
-                                    {
-                                        "type": "text",
-                                        "text": body.get("实收金额") + "",
-                                        "size": "sm",
-                                        "color": "#111111",
-                                        "align": "end",
-                                    },
-                                ],
-                            },
-                            {
-                                "type": "box",
-                                "layout": "horizontal",
-                                "contents": [
-                                    {
-                                        "type": "text",
-                                        "text": "营业收入：",
-                                        "size": "sm",
-                                        "color": "#555555",
-                                    },
-                                    {
-                                        "type": "text",
-                                        "text": body.get("营业收入") + "",
-                                        "size": "sm",
-                                        "color": "#111111",
-                                        "align": "end",
-                                    },
-                                ],
-                            },
-                            {
-                                "type": "box",
-                                "layout": "horizontal",
-                                "contents": [
-                                    {
-                                        "type": "text",
-                                        "size": "sm",
-                                        "color": "#555555",
-                                        "text": "总订单数：",
-                                    },
-                                    {
-                                        "type": "text",
-                                        "text": body.get("总订单数") + "",
-                                        "size": "sm",
-                                        "color": "#111111",
-                                        "align": "end",
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                    {"type": "separator", "margin": "xxl"},
-                    {
-                        "type": "box",
-                        "layout": "horizontal",
-                        "margin": "md",
-                        "contents": [
-                            {
-                                "type": "text",
-                                "text": "时间：",
-                                "size": "xs",
-                                "color": "#aaaaaa",
-                                "flex": 0,
-                            },
-                            {
-                                "type": "text",
-                                "text": body.get("时间范围"),
-                                "color": "#aaaaaa",
-                                "size": "xs",
-                                "align": "end",
-                            },
-                        ],
-                    },
-                ],
+                        "type": "text",
+                        "text": body.get("quota","0"),
+                        "size": "lg",
+                        "color": "#ee2f43",
+                        "align": "end",
+                        "weight": "bold"
+                    }
+                ]
             },
-            "styles": {"footer": {"separator": True}},
         }
-    elif shops == "中国名堂":
-        detail = json.loads(body)
-        bubble = generate_flex_message(detail)
+    else:
+        pass
+
     try:
         if not bubble:
             abort(400)
