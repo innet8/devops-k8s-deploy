@@ -7,7 +7,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN apk add python3-dev build-base linux-headers pcre-dev
-RUN pip install https://github.com/unbit/uwsgi/archive/uwsgi-2.0.zip#egg=uwsgi
+# 创建静态文件目录
+RUN mkdir -p static/tmp
 
-CMD ["uwsgi", "--ini", "/app/uwsgi.ini"]
+EXPOSE 8000
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

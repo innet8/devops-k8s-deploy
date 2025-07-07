@@ -15,6 +15,7 @@
 
 import datetime
 import errno
+import mimetypes
 import os
 import sys
 import logging
@@ -22,8 +23,10 @@ import tempfile
 import json
 from argparse import ArgumentParser
 
-from flask import Flask, request, abort, send_from_directory
-from werkzeug.middleware.proxy_fix import ProxyFix
+from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi.responses import PlainTextResponse
+from fastapi.staticfiles import StaticFiles
+import uvicorn
 
 from linebot.v3 import WebhookHandler
 from linebot.v3.models import UnknownEvent
@@ -93,14 +96,15 @@ from linebot.v3.messaging import (
 )
 
 from linebot.v3.insight import ApiClient as InsightClient, Insight
+import httpx
+import asyncio
 
 
-app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1, x_proto=1)
+app = FastAPI()
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-app.logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # get channel_secret and channel_access_token from your environment variable
@@ -345,44 +349,45 @@ def gift_cancel_template(shop_name, detail):
     return flex_message
 
 
-@app.route("/callback", methods=["POST"])
-def callback():
+@app.post("/callback")
+async def callback(request: Request):
     # get X-Line-Signature header value
-    signature = request.headers["X-Line-Signature"]
+    signature = request.headers.get("X-Line-Signature")
 
     # get request body as text
-    body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
+    body = await request.body()
+    body_text = body.decode('utf-8')
+    logger.info("Request body: " + body_text)
 
     # handle webhook body
     try:
-        handler.handle(body, signature)
+        handler.handle(body_text, signature)
     except ApiException as e:
-        app.logger.warn("Got exception from LINE Messaging API: %s\n" % e.body)
+        logger.warning("Got exception from LINE Messaging API: %s\n" % e.body)
     except InvalidSignatureError:
-        abort(400)
+        raise HTTPException(status_code=400, detail="Invalid signature")
 
-    return "OK"
+    return PlainTextResponse("OK")
 
 
-@app.route("/push", methods=["POST"])
-def pushMessage():
-    # get request body as text
-    body = request.form.get("res")
-    user_id = request.form.get("user_id")
-    shop = request.form.get("shop")
-    action = request.form.get("action", "default")
-    app.logger.info(user_id + " Request body: " + body)
+@app.post("/push")
+async def pushMessage(
+    res: str = Form(...),
+    user_id: str = Form(...),
+    shop: str = Form(...),
+    action: str = Form("default")
+):
+    logger.info(f"{user_id} Request body: {res}")
     bubble = None
     # handle webhook body
     if action == "gift_cancel":
-        detail = json.loads(body)
+        detail = json.loads(res)
         bubble = gift_cancel_template(shop, detail)
     elif action == "business_data":
-        body = json.loads(body)
+        body = json.loads(res)
         bubble = business_data_template(shop, body)
     elif action == "quota":
-        body = json.loads(body)
+        body = json.loads(res)
         bubble = {
             "type": "bubble",
             "body": {
@@ -411,7 +416,7 @@ def pushMessage():
 
     try:
         if not bubble:
-            abort(400)
+            raise HTTPException(status_code=400, detail="Invalid action or data")
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             line_bot_api.push_message(
@@ -419,25 +424,25 @@ def pushMessage():
                     to=user_id,
                     messages=[
                         FlexMessage(
-                            alt_text=shops,
+                            alt_text=shop,
                             contents=FlexContainer.from_json(json.dumps(bubble)),
                         )
                     ],
                 )
             )
     except ApiException as e:
-        app.logger.warn("Got exception from LINE Messaging API: %s\n" % e.body)
+        logger.warning("Got exception from LINE Messaging API: %s\n" % e.body)
     except InvalidSignatureError:
-        abort(400)
+        raise HTTPException(status_code=400, detail="Invalid signature")
 
-    return "OK"
+    return PlainTextResponse("OK")
 
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_text_message(event):
     text = event.message.text
     if isinstance(event.source, UserSource):
-        app.logger.info("user_id: " + event.source.user_id)
+        logger.info("user_id: " + event.source.user_id)
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         if text == "profile":
@@ -476,14 +481,127 @@ def handle_text_message(event):
             )
 
 
+# Other Message Type
+@handler.add(MessageEvent, message=(ImageMessageContent))
+def handle_content_message(event):
+    if isinstance(event.message, ImageMessageContent):
+        ext = 'jpg'
+    else:
+        return
+
+    with ApiClient(configuration) as api_client:
+        line_bot_blob_api = MessagingApiBlob(api_client)
+        message_content = line_bot_blob_api.get_message_content(message_id=event.message.id)
+        with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix=ext + '-', delete=False) as tf:
+            tf.write(message_content)
+            tempfile_path = tf.name
+
+    dist_path = tempfile_path + '.' + ext
+    dist_name = os.path.basename(dist_path)
+    os.rename(tempfile_path, dist_path)
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    IMAGE_PATH = f"static/tmp/{dist_name}"
+    DISPLAY_NAME = "IMAGE"
+
+    # Step 1: 获取 MIME 类型和文件大小
+    mime_type, _ = mimetypes.guess_type(IMAGE_PATH)
+    num_bytes = os.path.getsize(IMAGE_PATH)
+    init_url = "https://generativelanguage.googleapis.com/upload/v1beta/files"
+    headers = {
+        "x-goog-api-key": GEMINI_API_KEY,
+        "X-Goog-Upload-Protocol": "resumable",
+        "X-Goog-Upload-Command": "start",
+        "X-Goog-Upload-Header-Content-Length": str(num_bytes),
+        "X-Goog-Upload-Header-Content-Type": mime_type,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "file": {
+            "display_name": DISPLAY_NAME
+        }
+    }
+
+    response = httpx.post(init_url, headers=headers, json=payload)
+    upload_url = response.headers.get("X-Goog-Upload-URL")
+    if not upload_url:
+        raise RuntimeError("Failed to get resumable upload URL")
+    
+    with open(IMAGE_PATH, "rb") as f:
+        file_data = f.read()
+
+    upload_headers = {
+        "x-goog-api-key": GEMINI_API_KEY,
+        "Content-Length": str(num_bytes),
+        "X-Goog-Upload-Offset": "0",
+        "X-Goog-Upload-Command": "upload, finalize"
+    }
+    file_response = httpx.post(upload_url, headers=upload_headers, content=file_data)
+    file_info = file_response.json()
+    file_uri = file_info.get("file", {}).get("uri")
+
+    if not file_uri:
+        raise RuntimeError("Upload succeeded but no file URI found")
+    generation_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    generation_headers = {
+        "x-goog-api-key": GEMINI_API_KEY,
+        "Content-Type": "application/json"
+    }
+
+    generation_payload = {
+        "contents": [{
+            "parts": [
+                {
+                    "file_data": {
+                        "mime_type": mime_type,
+                        "file_uri": file_uri
+                    }
+                },
+                {
+                    "text": "This image contains a screenshot of a conversation. Please extract all messages with their respective senders. Return the result in the format:\n\n- Sender: Message\n\nIgnore any irrelevant UI elements or system messages."
+                }
+            ]
+        }],
+        "generationConfig": {
+            "thinkingConfig": {
+                "thinkingBudget": 0
+            }
+        }
+    }
+    response = httpx.post(generation_url, headers=generation_headers, json=generation_payload)
+    result = response.json()
+    for candidate in result.get("candidates", []):
+        for part in candidate.get("content", {}).get("parts", []):
+            if "text" in part:
+                with ApiClient(configuration) as api_client:
+                    line_bot_api = MessagingApi(api_client)
+                    line_bot_api.reply_message(
+                        ReplyMessageRequest(
+                            reply_token=event.reply_token,
+                            messages=[
+                                TextMessage(text=part["text"])
+                            ]
+                        )
+                    )
+                return
+    
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text="Recognition failure")
+                ]
+            )
+        )
+
 @handler.add(UnknownEvent)
 def handle_unknown_left(event):
-    app.logger.info(f"unknown event {event}")
+    logger.info(f"unknown event {event}")
 
 
-@app.route("/static/<path:path>")
-def send_static_content(path):
-    return send_from_directory("static", path)
+# 挂载静态文件
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 if __name__ == "__main__":
@@ -497,4 +615,4 @@ if __name__ == "__main__":
     # create tmp dir for download content
     make_static_tmp_dir()
 
-    app.run(debug=options.debug, port=options.port)
+    uvicorn.run(app, host="0.0.0.0", port=options.port, log_level="info" if not options.debug else "debug")
