@@ -22,11 +22,11 @@ import tempfile
 from fastapi import Request, FastAPI, Form, HTTPException
 from fastapi.responses import PlainTextResponse
 from contextlib import asynccontextmanager
-import redis
+import redis.asyncio as redis
 import json
 import httpx
 
-from linebot.v3.webhook import WebhookParser,UserSource
+from linebot.v3.webhook import WebhookParser
 from linebot.v3.messaging import (
     AsyncApiClient,
     AsyncMessagingApi,
@@ -46,7 +46,8 @@ from linebot.v3.exceptions import (
 from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent,
-    ImageMessageContent
+    ImageMessageContent,
+    UserSource
 )
 
 logging.basicConfig(
@@ -72,7 +73,7 @@ async def lifespan(app: FastAPI):
     在应用启动时连接 Redis，在应用关闭时断开 Redis。
     """
     # 连接 Redis
-    redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+    redis_client = redis.Redis(host='redis', port=6379, decode_responses=True)
     await redis_client.ping()
     logger.info("Connected to Redis successfully!")
     app.state.redis_client = redis_client
@@ -587,7 +588,7 @@ async def pushMessage(
     try:
         if not bubble:
             raise HTTPException(status_code=400, detail="Invalid action or data")
-        await line_bot_api.reply_message(
+        await line_bot_api.push_message(
             PushMessageRequest(
                 to=user_id,
                 messages=[
