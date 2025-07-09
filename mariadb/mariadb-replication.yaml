@@ -19,22 +19,13 @@ spec:
     enabled: true
 
   service:
-    type: LoadBalancer
-    metadata:
-      annotations:
-        metallb.universe.tf/loadBalancerIPs: 192.168.40.200
+    type: ClusterIP
 
   primaryService:
-    type: LoadBalancer
-    metadata:
-      annotations:
-        metallb.universe.tf/loadBalancerIPs: 192.168.40.201
+    type: ClusterIP
 
   secondaryService:
-    type: LoadBalancer
-    metadata:
-      annotations:
-        metallb.universe.tf/loadBalancerIPs: 192.168.40.202
+    type: ClusterIP
 
   metrics:
     enabled: true

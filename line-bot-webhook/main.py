@@ -4,7 +4,7 @@
 #  not use this file except in compliance with the License. You may obtain
 #  a copy of the License at
 #
-#       http://www.apache.org/licenses/LICENSE-2.0
+#       https://www.apache.org/licenses/LICENSE-2.0
 #
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -12,117 +12,89 @@
 #  License for the specific language governing permissions and limitations
 #  under the License.
 
-
-import datetime
 import errno
+import logging
 import mimetypes
 import os
 import sys
-import logging
 import tempfile
-import json
-from argparse import ArgumentParser
 
-from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi import Request, FastAPI, Form, HTTPException
 from fastapi.responses import PlainTextResponse
-from fastapi.staticfiles import StaticFiles
-import uvicorn
+from contextlib import asynccontextmanager
+import redis
+import json
+import httpx
 
-from linebot.v3 import WebhookHandler
-from linebot.v3.models import UnknownEvent
-from linebot.v3.exceptions import InvalidSignatureError
+from linebot.v3.webhook import WebhookParser,UserSource
+from linebot.v3.messaging import (
+    AsyncApiClient,
+    AsyncMessagingApi,
+    AsyncMessagingApiBlob,
+    Configuration,
+    ReplyMessageRequest,
+    TextMessage,
+    ImageMessage,
+    PushMessageRequest,
+    FlexMessage,
+    FlexContainer,
+    ApiException
+)
+from linebot.v3.exceptions import (
+    InvalidSignatureError
+)
 from linebot.v3.webhooks import (
     MessageEvent,
     TextMessageContent,
-    LocationMessageContent,
-    StickerMessageContent,
-    ImageMessageContent,
-    VideoMessageContent,
-    AudioMessageContent,
-    FileMessageContent,
-    UserSource,
-    RoomSource,
-    GroupSource,
-    FollowEvent,
-    UnfollowEvent,
-    JoinEvent,
-    LeaveEvent,
-    PostbackEvent,
-    BeaconEvent,
-    MemberJoinedEvent,
-    MemberLeftEvent,
-)
-from linebot.v3.messaging import (
-    Configuration,
-    ApiClient,
-    MessagingApi,
-    MessagingApiBlob,
-    ReplyMessageRequest,
-    PushMessageRequest,
-    MulticastRequest,
-    BroadcastRequest,
-    TextMessage,
-    ApiException,
-    LocationMessage,
-    StickerMessage,
-    ImageMessage,
-    TemplateMessage,
-    FlexMessage,
-    Emoji,
-    QuickReply,
-    QuickReplyItem,
-    ConfirmTemplate,
-    ButtonsTemplate,
-    CarouselTemplate,
-    CarouselColumn,
-    ImageCarouselTemplate,
-    ImageCarouselColumn,
-    FlexBubble,
-    FlexImage,
-    FlexBox,
-    FlexText,
-    FlexIcon,
-    FlexButton,
-    FlexSeparator,
-    FlexContainer,
-    MessageAction,
-    URIAction,
-    PostbackAction,
-    DatetimePickerAction,
-    CameraAction,
-    CameraRollAction,
-    LocationAction,
-    ErrorResponse,
+    ImageMessageContent
 )
 
-from linebot.v3.insight import ApiClient as InsightClient, Insight
-import httpx
-import asyncio
-
-
-app = FastAPI()
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
+USER_STATE_PREFIX = "line_bot_user_state:"
 
 # get channel_secret and channel_access_token from your environment variable
-channel_secret = os.getenv("LINE_CHANNEL_SECRET", None)
-channel_access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", None)
-if channel_secret is None or channel_access_token is None:
-    print(
-        "Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN as environment variables."
-    )
+channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
+channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
+if channel_secret is None:
+    print('Specify LINE_CHANNEL_SECRET as environment variable.')
+    sys.exit(1)
+if channel_access_token is None:
+    print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
     sys.exit(1)
 
-handler = WebhookHandler(channel_secret)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    FastAPI 应用的生命周期管理。
+    在应用启动时连接 Redis，在应用关闭时断开 Redis。
+    """
+    # 连接 Redis
+    redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+    await redis_client.ping()
+    logger.info("Connected to Redis successfully!")
+    app.state.redis_client = redis_client
+
+    yield # 应用在此处启动并处理请求
+    # 应用关闭时执行的代码
+    if hasattr(app.state, 'redis_client') and app.state.redis_client:
+        await app.state.redis_client.close()
+        logger.info("Redis connection closed.")
+
+# 将 lifespan 传递给 FastAPI 实例
+app = FastAPI(lifespan=lifespan)
+
+configuration = Configuration(
+    access_token=channel_access_token
+)
+async_api_client = AsyncApiClient(configuration)
+line_bot_api = AsyncMessagingApi(async_api_client)
+parser = WebhookParser(channel_secret)
+
 
 static_tmp_path = os.path.join(os.path.dirname(__file__), "static", "tmp")
-
-configuration = Configuration(access_token=channel_access_token)
-
-
 # function for create tmp dir for download content
 def make_static_tmp_dir():
     try:
@@ -132,7 +104,6 @@ def make_static_tmp_dir():
             pass
         else:
             raise
-
 
 # 营业数据
 def business_data_template(shop_name, body):
@@ -262,7 +233,6 @@ def business_data_template(shop_name, body):
     }
     return business_data
 
-
 def gift_cancel_template(shop_name, detail):
     result = {
         "time_range": detail.get("time_range"),
@@ -348,47 +318,8 @@ def gift_cancel_template(shop_name, detail):
 
     return flex_message
 
-
-@app.post("/callback")
-async def callback(request: Request):
-    # get X-Line-Signature header value
-    signature = request.headers.get("X-Line-Signature")
-
-    # get request body as text
-    body = await request.body()
-    body_text = body.decode('utf-8')
-    logger.info("Request body: " + body_text)
-
-    # handle webhook body
-    try:
-        handler.handle(body_text, signature)
-    except ApiException as e:
-        logger.warning("Got exception from LINE Messaging API: %s\n" % e.body)
-    except InvalidSignatureError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
-
-    return PlainTextResponse("OK")
-
-
-@app.post("/push")
-async def pushMessage(
-    res: str = Form(...),
-    user_id: str = Form(...),
-    shop: str = Form(...),
-    action: str = Form("default")
-):
-    logger.info(f"{user_id} Request body: {res}")
-    bubble = None
-    # handle webhook body
-    if action == "gift_cancel":
-        detail = json.loads(res)
-        bubble = gift_cancel_template(shop, detail)
-    elif action == "business_data":
-        body = json.loads(res)
-        bubble = business_data_template(shop, body)
-    elif action == "quota":
-        body = json.loads(res)
-        bubble = {
+def quota_template(shop,body):
+    return {
             "type": "bubble",
             "body": {
                 "type": "box",
@@ -443,90 +374,66 @@ async def pushMessage(
                 ]
             }
         }
-    else:
-        pass
-
-    try:
-        if not bubble:
-            raise HTTPException(status_code=400, detail="Invalid action or data")
-        with ApiClient(configuration) as api_client:
-            line_bot_api = MessagingApi(api_client)
-            line_bot_api.push_message(
-                PushMessageRequest(
-                    to=user_id,
-                    messages=[
-                        FlexMessage(
-                            alt_text=shop,
-                            contents=FlexContainer.from_json(json.dumps(bubble)),
-                        )
-                    ],
-                )
-            )
-    except ApiException as e:
-        logger.warning("Got exception from LINE Messaging API: %s\n" % e.body)
-    except InvalidSignatureError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
-
-    return PlainTextResponse("OK")
-
-
-@handler.add(MessageEvent, message=TextMessageContent)
-def handle_text_message(event):
+        
+async def handle_TextMessage(event):
     text = event.message.text
-    if isinstance(event.source, UserSource):
-        logger.info("user_id: " + event.source.user_id)
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        if text == "profile":
-            if isinstance(event.source, UserSource):
-                profile = line_bot_api.get_profile(user_id=event.source.user_id)
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[
-                            TextMessage(text="Display name: " + profile.display_name),
-                            TextMessage(
-                                text="Status message: " + str(profile.status_message)
-                            ),
-                        ],
-                    )
-                )
-            else:
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[
-                            TextMessage(
-                                text="Bot can't use profile API without user ID"
-                            )
-                        ],
-                    )
-                )
-        elif text == "id":
+    user_id = event.source.user_id
+    received_text = event.message.text
+    user_state_key = f"{USER_STATE_PREFIX}{user_id}"
+    logger.info(f"文本消息: {text}, Userid: {user_id}")
+    # 从 app.state 获取 Redis 客户端
+    redis_client = app.state.redis_client
+    if text == "id":
+        await line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text="Your USER_ID is: " + event.source.user_id)
+                ],
+            )
+        )
+    elif text == "识别图片": # 假设这是你的特定指令
+        await redis_client.set(user_state_key, "waiting_for_image", ex=120) # 设置状态并设置 120 秒过期时间
+        await line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text="好的，请现在发送您的图片。")
+                ],
+            )
+        )
+    elif received_text == "取消":
+        if await redis_client.exists(user_state_key):
+            await redis_client.delete(user_state_key)
             line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[
-                        TextMessage(text="Your USER_ID is: " + event.source.user_id)
-                    ],
-                )
+                event.reply_token,
+                TextMessage(text="操作已取消。")
+            )
+        else:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextMessage(text="当前没有需要取消的操作。")
             )
 
+async def handle_ImageMessage(event):
+    user_id = event.source.user_id
+    user_state_key = f"{USER_STATE_PREFIX}{user_id}"
 
-# Other Message Type
-@handler.add(MessageEvent, message=(ImageMessageContent))
-def handle_content_message(event):
-    if isinstance(event.message, ImageMessageContent):
-        ext = 'jpg'
-    else:
+    # 从 app.state 获取 Redis 客户端
+    redis_client = app.state.redis_client
+    current_state = await redis_client.get(user_state_key)
+    if current_state != "waiting_for_image":
+        logger.info(f"未收到指令后的图片消息 ID: {event.message.id}")
         return
+    logger.info(f"图片消息 ID: {event.message.id}, Userid: {user_id}")
+    ext = 'jpg'
+    line_bot_blob_api = AsyncMessagingApiBlob(async_api_client)
+    thread = line_bot_blob_api.get_message_content_with_http_info(event.message.id, async_req=True)
+    message_content = thread.get()
+    with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix=ext + '-', delete=False) as tf:
+        tf.write(message_content)
+        tempfile_path = tf.name
 
-    with ApiClient(configuration) as api_client:
-        line_bot_blob_api = MessagingApiBlob(api_client)
-        message_content = line_bot_blob_api.get_message_content(message_id=event.message.id)
-        with tempfile.NamedTemporaryFile(dir=static_tmp_path, prefix=ext + '-', delete=False) as tf:
-            tf.write(message_content)
-            tempfile_path = tf.name
 
     dist_path = tempfile_path + '.' + ext
     dist_name = os.path.basename(dist_path)
@@ -552,8 +459,9 @@ def handle_content_message(event):
             "display_name": DISPLAY_NAME
         }
     }
+    async with httpx.AsyncClient() as client:
+        response = await client.post(init_url, headers=headers, json=payload)
 
-    response = httpx.post(init_url, headers=headers, json=payload)
     upload_url = response.headers.get("X-Goog-Upload-URL")
     if not upload_url:
         raise RuntimeError("Failed to get resumable upload URL")
@@ -567,7 +475,8 @@ def handle_content_message(event):
         "X-Goog-Upload-Offset": "0",
         "X-Goog-Upload-Command": "upload, finalize"
     }
-    file_response = httpx.post(upload_url, headers=upload_headers, content=file_data)
+    async with httpx.AsyncClient() as client:
+        file_response = await client.post(upload_url, headers=upload_headers, content=file_data)
     file_info = file_response.json()
     file_uri = file_info.get("file", {}).get("uri")
 
@@ -599,52 +508,99 @@ def handle_content_message(event):
             }
         }
     }
-    response = httpx.post(generation_url, headers=generation_headers, json=generation_payload)
+    async with httpx.AsyncClient() as client:
+        response = await client.post(generation_url, headers=generation_headers, json=generation_payload)
     result = response.json()
+    temp = json.dumps(result)
+    logger.info(f"识别结果: {temp}, Userid: {user_id}")
     for candidate in result.get("candidates", []):
         for part in candidate.get("content", {}).get("parts", []):
             if "text" in part:
-                with ApiClient(configuration) as api_client:
-                    line_bot_api = MessagingApi(api_client)
-                    line_bot_api.reply_message(
+                await line_bot_api.reply_message(
                         ReplyMessageRequest(
-                            reply_token=event.reply_token,
-                            messages=[
-                                TextMessage(text=part["text"])
-                            ]
-                        )
+                        reply_token=event.reply_token,
+                        messages=[
+                            TextMessage(text=part["text"])
+                        ]
                     )
+                )
                 return
     
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
+    await line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[
+                TextMessage(text="Recognition failure")
+            ]
+        )
+    )
+
+@app.post("/callback")
+async def handle_callback(request: Request):
+    signature = request.headers['X-Line-Signature']
+
+    # get request body as text
+    body = await request.body()
+    body = body.decode()
+
+    try:
+        events = parser.parse(body, signature)
+    except InvalidSignatureError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    for event in events:
+        if not isinstance(event, MessageEvent):
+            continue
+
+        if isinstance(event.source, UserSource):
+            logger.info("user_id: " + event.source.user_id)
+        if isinstance(event.message, TextMessageContent):
+            await handle_TextMessage(event)
+        elif isinstance(event.message, ImageMessageContent):
+            await handle_ImageMessage(event)
+
+    return 'OK'
+
+
+@app.post("/push")
+async def pushMessage(
+    res: str = Form(...),
+    user_id: str = Form(...),
+    shop: str = Form(...),
+    action: str = Form("default")
+):
+    logger.info(f"{user_id} Request body: {res}")
+    bubble = None
+    # handle webhook body
+    if action == "gift_cancel":
+        detail = json.loads(res)
+        bubble = gift_cancel_template(shop, detail)
+    elif action == "business_data":
+        body = json.loads(res)
+        bubble = business_data_template(shop, body)
+    elif action == "quota":
+        body = json.loads(res)
+        bubble = quota_template(shop,body)
+    else:
+        pass
+
+    try:
+        if not bubble:
+            raise HTTPException(status_code=400, detail="Invalid action or data")
+        await line_bot_api.reply_message(
+            PushMessageRequest(
+                to=user_id,
                 messages=[
-                    TextMessage(text="Recognition failure")
-                ]
+                    FlexMessage(
+                        alt_text=shop,
+                        contents=FlexContainer.from_json(json.dumps(bubble)),
+                    )
+                ],
             )
         )
+    except ApiException as e:
+        logger.warning("Got exception from LINE Messaging API: %s\n" % e.body)
+    except InvalidSignatureError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
 
-@handler.add(UnknownEvent)
-def handle_unknown_left(event):
-    logger.info(f"unknown event {event}")
-
-
-# 挂载静态文件
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-if __name__ == "__main__":
-    arg_parser = ArgumentParser(
-        usage="Usage: python " + __file__ + " [--port <port>] [--help]"
-    )
-    arg_parser.add_argument("-p", "--port", type=int, default=8000, help="port")
-    arg_parser.add_argument("-d", "--debug", default=False, help="debug")
-    options = arg_parser.parse_args()
-
-    # create tmp dir for download content
-    make_static_tmp_dir()
-
-    uvicorn.run(app, host="0.0.0.0", port=options.port, log_level="info" if not options.debug else "debug")
+    return PlainTextResponse("OK")
