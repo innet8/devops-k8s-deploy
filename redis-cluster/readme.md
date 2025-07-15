@@ -1,0 +1,1 @@
+helm install redis oci://registry-1.docker.io/bitnamicharts/redis-cluster -n hitosea-k8s --set global.defaultStorageClass=hitosea-rbd-sc 

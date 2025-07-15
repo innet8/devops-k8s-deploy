@@ -538,7 +538,10 @@ async def handle_ImageMessage(event):
 
 @app.post("/callback")
 async def handle_callback(request: Request):
-    signature = request.headers['X-Line-Signature']
+    # signature = request.headers['X-Line-Signature']
+    signature = request.headers.get('X-Line-Signature')
+    if signature is None:
+        raise HTTPException(status_code=400, detail="Missing header")
 
     # get request body as text
     body = await request.body()
