@@ -1,0 +1,31 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: maxscale-galera-server-mysql
+spec:
+  mariaDbRef:
+    name: mariadb-galera
+  privileges:
+    - "SELECT"
+  database: "mysql"
+  table: "*"
+  username: maxscale-galera-server
+  grantOption: false
+  host: "%"
+  retryInterval: 5s
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: maxscale-galera-server-databases
+spec:
+  mariaDbRef:
+    name: mariadb-galera
+  privileges:
+    - "SHOW DATABASES"
+  database: "*"
+  table: "*"
+  username: maxscale-galera-server
+  grantOption: false
+  host: "%"
+  retryInterval: 5s

@@ -15,12 +15,6 @@ pipeline {
 
     stage('clone code') {
       agent none
-      when {
-        not {
-          environment name: 'NS', value: 'dootask-test'
-        }
-
-      }
       steps {
         input(id: 'deploy-to-dev', message: 'deploy to dev?')
         container('nodejs') {
@@ -32,25 +26,19 @@ pipeline {
 
     stage('deploy to dev') {
       agent none
-      when {
-        not {
-          environment name: 'NS', value: 'dootask-test'
-        }
-
-      }
       steps {
         container('base') {
           withCredentials([kubeconfigContent(credentialsId: 'k8s', variable: 'KUBECONFIG_CONFIG')]) {
             sh 'mkdir -p ~/.kube/'
             sh 'echo "$KUBECONFIG_CONFIG" > ~/.kube/config'
-            sh '''for file in dootask/deploy/*; do  
-if [[ "$file" == "dootask/deploy/config.yaml" || "$file" == "dootask/deploy/ingress.yaml" ]]; then 
-    envsubst < $file| kubectl -n $NS apply -f - ;
-else
-    kubectl -n $NS apply -f $file
-fi
+            sh '''kubectl get ns -l kubesphere.io/workspace=hitosea-test,!kubesphere.io/devopsproject|grep dootask|awk '{print $1}' |while read i; do 
+kubectl -n $i apply -f dootask/deploy/init-job.yaml; 
+
 done'''
-            sh 'kubectl -n default get secret dootask.top -o yaml|sed "/namespace:/d;/uid:/d;/resourceVersion:/d" | kubectl -n $NS apply -f  -'
+            sh '''kubectl get ns -l 'kubesphere.io/workspace=hitosea-released,!kubesphere.io/devopsproject'|grep dootask|awk '{print $1}' |while read i; do
+            kubectl wait --for=condition=complete job/dootask-init-job -n $i --timeout=600s;
+kubectl rollout restart deployment/dootask-php  -n $i;
+kubectl rollout restart deployment/dootask-nginx  -n $i; done'''
           }
 
         }
@@ -71,6 +59,6 @@ done'''
     string(name: 'DB_ROOT_PASSWORD', defaultValue: '', description: '')
     string(name: 'APP_KEY', defaultValue: '', description: '')
     string(name: 'APP_ID', defaultValue: '', description: '')
-    string(name: 'NS', defaultValue: 'dootask-test', description: '')
+    string(name: 'NS', defaultValue: 'dootask-demo', description: '')
   }
 }

@@ -8,6 +8,12 @@ spec:
     name: mariadb
     key: root-password
 
+  username: mariadb
+  passwordSecretKeyRef:
+    name: mariadb
+    key: password
+  database: mariadb
+
   storage:
     storageClassName: hitosea-rbd-sc
     size: 10Gi
@@ -29,3 +35,19 @@ spec:
 
   metrics:
     enabled: true
+
+maxScale:
+    enabled: true
+
+    kubernetesService:
+      type: ClusterIP
+
+    guiKubernetesService:
+      type: ClusterIP
+
+    connection:
+      secretName: mxs-repl-conn
+      port: 3306
+  
+    metrics:
+      enabled: true

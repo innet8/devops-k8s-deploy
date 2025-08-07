@@ -1,0 +1,32 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: maxscale-repl-monitor
+  namespace: hitosea-k8s
+spec:
+  mariaDbRef:
+    name: mariadb-repl
+    namespace: hitosea-k8s
+  privileges:
+    - "BINLOG ADMIN"
+    - "CONNECTION ADMIN"
+    - "EVENT"
+    - "PROCESS"
+    - "PROCESS"
+    - "READ_ONLY ADMIN"
+    - "RELOAD"
+    - "REPLICA MONITOR"
+    - "REPLICATION CLIENT"
+    - "REPLICATION SLAVE ADMIN"
+    - "REPLICATION SLAVE"
+    - "SELECT"
+    - "SET USER"
+    - "SHOW DATABASES"
+    - "SLAVE MONITOR"
+    - "SUPER"
+  database: "*"
+  table: "*"
+  username: maxscale-repl-monitor
+  grantOption: false
+  host: "%"
+  retryInterval: 5s

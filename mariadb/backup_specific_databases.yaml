@@ -2,27 +2,28 @@ apiVersion: k8s.mariadb.com/v1alpha1
 kind: Backup
 metadata:
   name: backup
+  namespace: hitosea-k8s
 spec:
   mariaDbRef:
-    name: mariadb
+    name: mariadb-repl
+    namespace: hitosea-k8s
   databases:
-    - db1
-    - db2
-    - db3
+    - translations
+    - appstore
+  timeZone: "UTC"
   maxRetention: 720h # 30 days
+  compression: bzip2
   storage:
     s3:
       bucket: backups
-      endpoint: minio.minio.svc.cluster.local:9000
+      prefix: trans_and_store
+      endpoint: ""
       region:  us-east-1
       accessKeyIdSecretKeyRef:
-        name: minio
+        name: ceph-s3
         key: access-key-id
       secretAccessKeySecretKeyRef:
-        name: minio
+        name: ceph-s3
         key: secret-access-key
       tls:
         enabled: true
-        caSecretKeyRef:
-          name: minio-ca
-          key: ca.crt

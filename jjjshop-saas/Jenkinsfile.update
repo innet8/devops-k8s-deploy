@@ -23,15 +23,18 @@ pipeline {
           withCredentials([kubeconfigContent(credentialsId: 'k8s', variable: 'KUBECONFIG_CONFIG')]) {
             sh 'mkdir -p ~/.kube/'
             sh 'echo "$KUBECONFIG_CONFIG" > ~/.kube/config'
-            sh '''for file in likeshop/deploy/*; do  
-if [ "$file" == "likeshop/deploy/init-job.yaml" ]; then 
+            sh '''passwd=$(kubectl get Secret -n jjjshop-demo  db-secrets  -o yaml|grep DB_ROOT_PASSWORD |awk '{print $2}'|base64 -d)
+timestamp=$(date +%Y%m%d%H%M%S)
+mkdir -p /var/lib/mysql/backup
+filename="/var/lib/mysql/backup/mysql_backup_${timestamp}.sql.gz"
+kubectl -n $NS exec -i jjjshop-mariadb-0 -- mkdir -p /var/lib/mysql/backup 
+kubectl -n $NS exec -i jjjshop-mariadb-0 -- sh -c "mysqldump -uroot -p$passwd  --all-databases| gzip > $filename"'''
+          }
+            sh '''for file in jjjshop-saas/deploy/*; do  
+if [[ "$file" == "jjjshop-saas/deploy/init-job.yaml" || "$file" == "jjjshop-saas/deploy/web-deployment.yaml" ]]; then 
     envsubst < $file| kubectl -n $NS apply -f - ;
-else
-    kubectl -n $NS apply -f $file
 fi
 done'''
-          }
-
         }
 
       }
@@ -41,11 +44,13 @@ done'''
   environment {
     BRANCH = "$params.BRANCH"
     GIT_TOKEN = "$params.GIT_TOKEN"
+    VERSION = "$params.VERSION"
     NS = "$params.NS"
   }
   parameters {
-    string(name: 'BRANCH', defaultValue: 'master', description: '')
+    string(name: 'BRANCH', defaultValue: 'saas-v1.1.1', description: '')
     string(name: 'GIT_TOKEN', defaultValue: '', description: '')
-    string(name: 'NS', defaultValue: 'likeshop', description: '')
+    string(name: 'VERSION', defaultValue: 'latest', description: '')
+    string(name: 'NS', defaultValue: 'jjjshop-demo', description: '')
   }
 }

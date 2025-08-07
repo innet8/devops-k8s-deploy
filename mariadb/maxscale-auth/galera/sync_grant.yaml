@@ -1,0 +1,19 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: maxscale-galera-sync
+spec:
+  mariaDbRef:
+    name: mariadb-galera
+  privileges:
+    - "SELECT"
+    - "INSERT"
+    - "UPDATE"
+    - "CREATE"
+    - "DROP"
+  database: "mysql"
+  table: "maxscale_config"
+  username: maxscale-galera-sync
+  grantOption: false
+  host: "%" 
+  retryInterval: 5s

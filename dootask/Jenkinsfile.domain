@@ -1,0 +1,21 @@
+pipeline {
+  agent any
+  stages {
+    stage('stage-0vwu6') {
+      agent none
+      steps {
+        container('base') {
+          withCredentials([kubeconfigContent(credentialsId: 'k8s', variable: 'KUBECONFIG_CONFIG')]) {
+            sh 'mkdir -p ~/.kube/'
+            sh 'echo "$KUBECONFIG_CONFIG" > ~/.kube/config'
+            sh '''kubectl get ns -l 'kubesphere.io/workspace=hitosea-released,!kubesphere.io/devopsproject'|grep dootask|awk '{print $1}' |while read i; do
+    kubectl -n default get secret dootask.top -o yaml| sed "/namespace:/d;/uid:/d;/resourceVersion:/d" | kubectl -n $i apply -f  -;done'''
+          }
+
+        }
+
+      }
+    }
+
+  }
+}

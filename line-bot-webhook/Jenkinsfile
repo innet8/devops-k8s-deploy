@@ -23,13 +23,7 @@ pipeline {
           withCredentials([kubeconfigContent(credentialsId: 'k8s', variable: 'KUBECONFIG_CONFIG')]) {
             sh 'mkdir -p ~/.kube/'
             sh 'echo "$KUBECONFIG_CONFIG" > ~/.kube/config'
-            sh '''for file in likeshop/deploy/*; do  
-if [ "$file" == "likeshop/deploy/init-job.yaml" ]; then 
-    envsubst < $file| kubectl -n $NS apply -f - ;
-else
-    kubectl -n $NS apply -f $file
-fi
-done'''
+            sh '''envsubst < line-bot-webhook/deploy/deploy.yaml| kubectl -n $ENV apply -f - ;'''
           }
 
         }
@@ -39,13 +33,14 @@ done'''
 
   }
   environment {
-    BRANCH = "$params.BRANCH"
-    GIT_TOKEN = "$params.GIT_TOKEN"
-    NS = "$params.NS"
+    LINE_CHANNEL_SECRET = "$params.LINE_CHANNEL_SECRET"
+    LINE_CHANNEL_ACCESS_TOKEN = "$params.LINE_CHANNEL_ACCESS_TOKEN"
+    ENV = "$params.ENV"
   }
   parameters {
-    string(name: 'BRANCH', defaultValue: 'master', description: '')
-    string(name: 'GIT_TOKEN', defaultValue: '', description: '')
-    string(name: 'NS', defaultValue: 'likeshop', description: '')
+    string(name: 'LINE_CHANNEL_SECRET', defaultValue: '', description: '')
+    string(name: 'LINE_CHANNEL_ACCESS_TOKEN', defaultValue: '', description: '')
+    string(name: 'ENV', defaultValue: 'line-bot-webhook', description: '')
+
   }
 }

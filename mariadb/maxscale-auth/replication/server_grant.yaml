@@ -1,0 +1,35 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: maxscale-repl-server-mysql
+  namespace: hitosea-k8s
+spec:
+  mariaDbRef:
+    name: mariadb-repl
+    namespace: hitosea-k8s
+  privileges:
+    - "SELECT"
+  database: "mysql"
+  table: "*"
+  username: maxscale-repl-server
+  grantOption: false
+  host: "%"
+  retryInterval: 5s
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: maxscale-repl-server-databases
+  namespace: hitosea-k8s
+spec:
+  mariaDbRef:
+    name: mariadb-repl
+    namespace: hitosea-k8s
+  privileges:
+    - "SHOW DATABASES"
+  database: "*"
+  table: "*"
+  username: maxscale-repl-server
+  grantOption: false
+  host: "%"
+  retryInterval: 5s
