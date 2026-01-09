@@ -585,6 +585,8 @@ async def pushMessage(
     elif action == "quota":
         body = json.loads(res)
         bubble = quota_template(shop,body)
+    elif action == "shift":
+        bubble = json.loads(res)
     else:
         pass
 
